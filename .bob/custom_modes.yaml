@@ -11,6 +11,5 @@ customModes:
       Use when onboarding to a new codebase and exploring it through the
       lawang-onboard MCP server.
     groups:
-      - read
       - mcp
       - skill
