@@ -1,3 +1,21 @@
-# lablab submission form answers
+# lablab submission form answers (draft)
 
-TODO: one-line description, long description, tags, technologies.
+**Project name:** Lawang Onboard
+
+**One line (under 100 characters):** An onboarding copilot in IBM Bob that only shows what your role may see.
+
+**Short description (about 250 characters):** Lawang Onboard helps new engineers learn a codebase
+in hours: IBM Bob explains the code, its history and its decisions, with citations, through an MCP
+server that filters every piece of context by role before the model sees it.
+
+**Long description:** Use `problem-solution.md`.
+
+**IBM Bob usage:** Use `bob-usage.md`.
+
+**Tags:** IBM Bob, onboarding, developer productivity, MCP, permissions, access control, Go,
+AI agents
+
+**Technologies:** IBM Bob IDE (Onboard custom mode, skills, slash commands, MCP, subagents, code
+review), Go, Model Context Protocol (Go SDK), HTML/JS demo page. TODO: add watsonx if used.
+
+**Links:** repository TODO, demo URL TODO, video TODO, slides TODO.

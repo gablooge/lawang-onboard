@@ -26,13 +26,22 @@ scopes:
   - glob: "**"
     scope: "path:repo"
 
+# Items with no paths (issues, issue comments) get their scope from labels, then from kind.
+# A label rule wins over the kind rule. An issue comment carries its issue's labels.
+label_scopes:
+  growth: "private:growth"
+
+kind_scopes:
+  issue: "backlog:public"
+  issue_comment: "backlog:public"
+
 roles:
   maintainer:
     token_env: ONBOARD_TOKEN_MAINTAINER
     scopes: ["*"]
   employee:
     token_env: ONBOARD_TOKEN_EMPLOYEE
-    scopes: ["path:*", "docs:*", "adr:*"]
+    scopes: ["path:*", "docs:*", "adr:*", "backlog:*"]
   contractor:
     token_env: ONBOARD_TOKEN_CONTRACTOR
-    scopes: ["path:internal/ingress", "path:internal/provider", "docs:public", "adr:public"]
+    scopes: ["path:internal/ingress", "path:internal/provider", "docs:public", "adr:public", "backlog:public"]

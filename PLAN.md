@@ -322,12 +322,12 @@ This is data preparation, not product code: it produces the dataset the product 
 
 ### Block C, 18:30 to 19:30: drafts (Claude Code)
 
-- [ ] `problem-solution.md` draft (target 400 words).
-- [ ] `bob-usage.md` skeleton: modes used, skills, commands, MCP, subagents, reviews, coin totals
+- [x] `problem-solution.md` draft (target 400 words).
+- [x] `bob-usage.md` skeleton: modes used, skills, commands, MCP, subagents, reviews, coin totals
       from the ledger, and an honest line on what Claude Code did (setup, export, docs).
-- [ ] `video-script.md` (section 10) and `slides-outline.md` (section 11).
-- [ ] `form-answers.md`: short description (1 line), long description, tags, tech list.
-- [ ] Three demo questions that show a difference between roles, checked against the corpus:
+- [x] `video-script.md` (section 10) and `slides-outline.md` (section 11).
+- [x] `form-answers.md`: short description (1 line), long description, tags, tech list.
+- [x] Demo questions that show a difference between roles, checked against the corpus (now five plus leak probes, in `docs/submission/demo-questions.md`):
   1. "Give me the tour." (contractor gets ingress + provider only)
   2. "Why is there no message broker?" (everyone gets the ADR/architecture answer)
   3. "What is the go-to-market plan?" (maintainer gets `growth/`, contractor gets "withheld: 4
@@ -548,6 +548,7 @@ Record on Sunday 16:00. Two takes, pick the better one. Upload unlisted.
 | Fri 15:54 | New repo `lawang-onboard`, not a branch of `gablooge/lawang`. | Clean evidence of what was built during the event; Lawang's own agent rules and backlog stay untouched; no Apache/MIT question. |
 | Fri 16:10 | Screenshot naming `lawangonboard_task##_<desc>.png`; tools `setup_guide`, `starter_tasks` added; impact benchmark and leak suite promoted. | Official guide and organizers' email. |
 | Fri 16:34 | `gablooge/lawang` is public and `growth/` may be in the demo, so `private:growth` stays the restricted scope. | Samsul. |
+| Fri 17:00 | Issues get scope `backlog:public`; label `growth` maps to `private:growth` (issue comments inherit their issue's labels). | `growth/` has only a README; the real launch material is issues #36 to #42, and pathless items would otherwise be denied to everyone. |
 | Fri 16:50 | The export does not assign scopes; the server does, from `roles.yaml`. | Scoping is product logic, so Bob builds it. |
 | | | |
 
