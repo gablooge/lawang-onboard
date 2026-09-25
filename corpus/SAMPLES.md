@@ -2,7 +2,7 @@
 
 One item per kind, text cut to 300 characters. Bob reads this file instead of
 `corpus/*.jsonl`, which `.bobignore` hides because the full files are about 2.6 MB and reading
-them costs many Bobcoins. Tests still load the real files. Regenerate with `make corpus-samples`.
+them costs many Bobcoins. Tests still load the real files..
 
 ## adr
 
