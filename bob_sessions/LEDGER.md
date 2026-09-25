@@ -7,3 +7,4 @@ recorded demo.
 |---|---|---|---|---|---|---|---|
 | 01 | Fri 22:23 | Samsul | Agent | Read AGENTS.md and summarize the rules (setup check; includes one compaction) | 0.096 | 0.096 | lawangonboard_task01_setup_check_summary.png |
 | 02 | Fri 22:33 | Samsul | Plan | Design: docs/design.md (package layout, filter, scope computation, leak tests, build order) | 0.468 | 0.564 | lawangonboard_task02_design_plan_summary.png |
+| 03 | Fri 22:37 | Samsul | Agent | Steps 1 and 2: go.mod, cmd/onboard stub, internal/roles (glob matcher), internal/corpus, tests | 5.32 | 5.884 | lawangonboard_task03_corpus_roles_loader_summary.png |

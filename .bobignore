@@ -7,3 +7,5 @@ node_modules/
 *.pem
 *.key
 bob_sessions/*.png
+# The full corpus is ~2.6 MB; Bob reads corpus/SAMPLES.md and corpus/manifest.json instead.
+corpus/*.jsonl
