@@ -243,28 +243,36 @@ Every tool response ends with a `withheld` summary for that call.
 
 ## 4. Who does what
 
+Ryan supports on the non-technical side (decided Fri 17:07). Bobcoins are per person and cannot be
+moved, so Ryan spends his on **using** the product, not building it.
+
 | Person | Owns |
 |---|---|
-| **Samsul** | Architecture, scope model, MCP server, Bob mode/skills/commands, the Bob usage statement, narration. |
-| **Ryan** | Demo web page, cover image, slides, video edit. (Confirm on the 20:30 call. If he cannot, the page shrinks to one HTML file.) |
-| **Bob** | Writes the product code in Plan and Agent mode, reviews PRs, generates tours in Onboard mode. |
-| **Claude Code** | Everything in section 5, then support: CI, secret scan, deploy, docs, checklist, Bobcoin ledger. |
+| **Samsul** | Everything technical: scope model, MCP server, Bob mode/skills/commands, the one-file demo page, deploy, the Bob usage statement. |
+| **Ryan** | The "new hire": runs the demo questions in Onboard mode as contractor, times them, and grades clarity; Bob code review on Samsul's PRs (reads findings, passes them on); slides, cover, video voice and recording; the lablab form and the feedback form. |
+| **Bob** | Writes the product code (Samsul's coins), reviews PRs and answers onboarding questions (Ryan's coins). |
+| **Claude Code** | Setup, corpus export, CI, docs, checklists, ledger, deploy scripts. |
 
-### Bobcoin budget (80 total, verify costs after the first task)
+### Bobcoin budget (verify real costs after the first task and resize)
 
-| Bucket | Samsul | Ryan |
+| Bucket | Samsul (40) | Ryan (40) |
 |---|---|---|
-| Design (Plan mode) | 4 | 2 |
-| Corpus + filter + tests | 10 | |
+| Design (Plan mode) | 3 | |
+| Filter + leak tests | 9 | |
 | MCP server + tools | 12 | |
 | Onboard mode, skills, commands | 4 | |
-| Demo web page | | 20 |
-| Bob code reviews | 2 | 4 |
-| Live demo recording + retakes | 4 | 4 |
+| Demo page (one HTML file) | 4 | |
+| Fixes from review | 4 | |
+| Onboarding benchmark: 10 questions as contractor, some as maintainer | | 12 |
+| Bob code review on each PR | | 6 |
+| Live demo recording + retakes | | 8 |
+| Generated `ONBOARDING-<role>.md` for the page | | 4 |
 | Reserve | 4 | 10 |
 
-Rule: after the first real task, compare actual cost with this table and resize everything.
-Stop starting new Bob tasks at 80% spent; the last coins are for the recorded demo.
+Rules: Samsul stops starting new build tasks at 80% (32 coins). Ryan's reserve covers a second
+recording or extra benchmark questions. Ryan must be signed in to `ibm-coding-challenge-uat` on his
+own machine and screenshot his own tasks into `bob_sessions/` (the organizers say every
+participant uploads).
 
 ---
 
@@ -353,13 +361,14 @@ This is data preparation, not product code: it produces the dataset the product 
 Agenda (30 to 45 minutes):
 1. Pitch and scope (section 2): agree Must/Should/Could.
 2. Roles and Bobcoin split (section 4).
-3. The contract between server and page: freeze `/api` shapes now so Ryan can build against a
-   mock tonight:
+3. Ryan's part: read `docs/submission/demo-questions.md` and the video script; he is the new hire
+   in the benchmark and the voice of the video. Confirm he has an IBMid (his lablab email), Bob
+   v2.0.2+ installed, and will accept the invite at kickoff. Freeze the `/api` shapes anyway, for
+   Bob building the page later:
    - `GET /api/roles` -> `[{"id":"contractor","label":"Contractor"}]`
    - `GET /api/tour?role=` -> `{"sections":[{"title","body","citations":[id]}],"withheld":{"private:growth":4}}`
-   - `POST /api/ask {role, question}` -> same shape (Should; can serve pre-generated answers)
    - `GET /api/audit?role=` -> `[{"ts","tool","returned":[id],"withheld":[scope]}]`
-4. Git flow: one branch per piece, PRs reviewed by Bob code review, Samsul merges.
+4. Git flow: one branch per piece; Ryan runs Bob code review on each PR (his coins); Samsul merges.
 5. Communication: one Discord or WhatsApp thread, check-ins at 02:00, 10:00, 16:00, 22:00 Sat.
 
 ### Block F, 21:30 to 22:00: pre-flight
@@ -399,7 +408,7 @@ against the folder at every push.
 | 23:30 | Samsul | Agent | `go.mod`, corpus loader, `roles.yaml` parser, the single `filter` function, table tests proving no item outside scopes is ever returned. |
 | 00:30 | Samsul | Agent | MCP server skeleton on the go-sdk, stdio + streamable HTTP, bearer token -> role, tools `whoami`, `get`, `search`. |
 | 01:30 | Samsul | (manual) | `.bob/mcp.json` pointing at the local server with the contractor token; call `whoami` from Bob. |
-| 23:00 | Ryan | Plan then Agent | Page skeleton against a mock of the `/api` contract: role picker, tour view, withheld panel. |
+| 23:00 | Ryan | Ask | Accept the invite, confirm 40 coins, one cheap Ask-mode task ("summarize AGENTS.md") and its screenshot. Then rest: his work starts Saturday. |
 
 **02:00 checkpoint**: Bob in any mode calls `whoami` through MCP and gets `contractor`. Tests
 green. Push. Then **sleep**. A rested Saturday is worth more than three extra night hours.
@@ -511,7 +520,8 @@ Record on Sunday 16:00. Two takes, pick the better one. Upload unlisted.
 **Saturday 26 Sep**
 - 09:00 check-in. Finish `map_system`, `trace_feature`, `why`, `withheld`, audit log.
 - 12:00 Onboard mode, `tour` and `trace` skills, slash commands. Generate `ONBOARDING-<role>.md`.
-- 15:00 Wire the page to the real `/api`. Deploy to the VPS. Demo URL live.
+- 15:00 Bob builds the one-file page on the real `/api` (Samsul). Deploy to the VPS. Demo URL live.
+- 16:00 Ryan: first benchmark pass (10 questions as contractor, timed), Bob review of open PRs.
 - 18:00 **MVP freeze.** Everything in "Must" works on the deployed URL.
 - 19:00 Run the impact benchmark and the leak suite; numbers into README.
 - Evening: remaining Should items, Bob code review on each PR, fix findings.
@@ -537,7 +547,7 @@ Record on Sunday 16:00. Two takes, pick the better one. Upload unlisted.
 | Many teams build "onboarding assistant" | Lead every artifact with permissions and the 0-leak proof, not with "it explains your repo". |
 | MCP over HTTP will not work in Bob | Use stdio locally for the demo; the web page still uses `/api`. |
 | VPS deploy problems | Static page on Cloudflare Pages serving pre-generated tours and audit JSON. |
-| Ryan unavailable | Page shrinks to one HTML file with the role picker and withheld panel; Samsul records video alone. |
+| Ryan unavailable | Samsul runs 3 benchmark questions himself and records the video alone; Ryan's coins are lost, so cut Could items. |
 | Track mismatch | Same engine, different framing (section 6 decision). |
 | A secret gets committed | Rotate it first, then rewrite, then tell the organizers if it was an IBM credential. |
 
@@ -547,6 +557,7 @@ Record on Sunday 16:00. Two takes, pick the better one. Upload unlisted.
 |---|---|---|
 | Fri 15:54 | New repo `lawang-onboard`, not a branch of `gablooge/lawang`. | Clean evidence of what was built during the event; Lawang's own agent rules and backlog stay untouched; no Apache/MIT question. |
 | Fri 16:10 | Screenshot naming `lawangonboard_task##_<desc>.png`; tools `setup_guide`, `starter_tasks` added; impact benchmark and leak suite promoted. | Official guide and organizers' email. |
+| Fri 17:07 | Ryan is non-technical support; he spends his coins on the benchmark, PR reviews and the demo recording. | Coins cannot be moved between people, and his real newcomer sessions are the best impact evidence. |
 | Fri 16:34 | `gablooge/lawang` is public and `growth/` may be in the demo, so `private:growth` stays the restricted scope. | Samsul. |
 | Fri 17:00 | Issues get scope `backlog:public`; label `growth` maps to `private:growth` (issue comments inherit their issue's labels). | `growth/` has only a README; the real launch material is issues #36 to #42, and pathless items would otherwise be denied to everyone. |
 | Fri 16:50 | The export does not assign scopes; the server does, from `roles.yaml`. | Scoping is product logic, so Bob builds it. |
