@@ -303,7 +303,7 @@ Stop starting new Bob tasks at 80% spent; the last coins are for the recorded de
 
 This is data preparation, not product code: it produces the dataset the product reads.
 
-- [ ] `scripts/export-corpus.sh` (or a small Python script) that writes `corpus/*.jsonl`:
+- [x] `scripts/export_corpus.py` (stdlib Python, `make corpus`) writes `corpus/*.jsonl`:
   - `files.jsonl`: path, size, first 200 lines of text for `.go`, `.md`, `.sql`, `.yaml`.
   - `docs.jsonl`: `README.md`, `docs/architecture.md`, `docs/roadmap.md`, `docs/backlog.md`,
     `SECURITY.md`, `growth/**` (tagged `private:growth`).
@@ -312,13 +312,13 @@ This is data preparation, not product code: it produces the dataset the product 
     paths. Author reduced to a handle.
   - `prs.jsonl`: `gh pr list --state all --limit 200 --json number,title,body,files,mergedAt` and
     `gh pr view <n> --json reviews,comments` for each, bodies and review comments only.
-- [ ] Scrub pass: replace any email, any login other than `gablooge`, any hostname or IP, any
+- [x] Scrub pass: replace any email, any login other than `gablooge`, any hostname or IP, any
       token-looking string, with placeholders. Print a report of what was replaced.
-- [ ] Ask Samsul: is `gablooge/lawang` public, and may `growth/` go into a public demo corpus?
+- [x] Ask Samsul: is `gablooge/lawang` public, and may `growth/` go into a public demo corpus? (Both yes, Fri 16:34.)
       If not, drop `growth/` and use `SECURITY.md` + a synthetic `docs/internal/` note as the
       private scope instead.
-- [ ] Fill `DATA_SOURCES.md` with the counts.
-- [ ] Commit: "Add the Lawang corpus export".
+- [x] Fill `DATA_SOURCES.md` with the counts.
+- [x] Commit: "Add the Lawang corpus export".
 
 ### Block C, 18:30 to 19:30: drafts (Claude Code)
 
@@ -547,6 +547,8 @@ Record on Sunday 16:00. Two takes, pick the better one. Upload unlisted.
 |---|---|---|
 | Fri 15:54 | New repo `lawang-onboard`, not a branch of `gablooge/lawang`. | Clean evidence of what was built during the event; Lawang's own agent rules and backlog stay untouched; no Apache/MIT question. |
 | Fri 16:10 | Screenshot naming `lawangonboard_task##_<desc>.png`; tools `setup_guide`, `starter_tasks` added; impact benchmark and leak suite promoted. | Official guide and organizers' email. |
+| Fri 16:34 | `gablooge/lawang` is public and `growth/` may be in the demo, so `private:growth` stays the restricted scope. | Samsul. |
+| Fri 16:50 | The export does not assign scopes; the server does, from `roles.yaml`. | Scoping is product logic, so Bob builds it. |
 | | | |
 
 ## Sources

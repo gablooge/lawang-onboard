@@ -10,7 +10,7 @@ secrets:
 
 # Rebuilds corpus/*.jsonl from a local clone of the Lawang repository (read-only).
 corpus:
-	./scripts/export-corpus.sh ../lawang
+	./scripts/export_corpus.py ../lawang gablooge/lawang --out corpus
 
 vet:
 	@if [ -f go.mod ]; then go vet ./...; else echo "no go.mod yet"; fi

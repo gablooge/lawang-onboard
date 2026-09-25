@@ -1,0 +1,22 @@
+{
+  "counts": {
+    "adr": 6,
+    "commit": 50,
+    "doc": 10,
+    "file": 79,
+    "issue": 36,
+    "issue_comment": 84,
+    "pr": 13,
+    "review": 332
+  },
+  "github_api_calls": 0,
+  "scrubbed": {
+    "dropped_placeholder_only_reviews": 14,
+    "ipv4": 1,
+    "local_path": 14,
+    "personal_hostname": 3,
+    "personal_name": 4
+  },
+  "source": "gablooge/lawang",
+  "source_commit": "baa08cf"
+}
