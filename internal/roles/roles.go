@@ -70,12 +70,15 @@ func Load(path string) (*Config, error) {
 
 // RoleForToken looks up the role for the given bearer token by reading each
 // role's token_env environment variable at call time. It returns the matching
-// Role and true, or the zero Role and false if the token is unknown or empty.
+// Role and true, or the zero Role and false if the token is unknown, empty,
+// or matches more than one role (fail closed on ambiguity).
 // The token value is never logged or returned in error messages.
 func (cfg *Config) RoleForToken(token string) (Role, bool) {
 	if token == "" {
 		return Role{}, false
 	}
+	var matched Role
+	count := 0
 	for name, envVar := range cfg.tokenEnvs {
 		if envVar == "" {
 			continue
@@ -86,8 +89,15 @@ func (cfg *Config) RoleForToken(token string) (Role, bool) {
 		}
 		if subtle.ConstantTimeCompare([]byte(val), []byte(token)) == 1 {
 			r, ok := cfg.Roles[name]
-			return r, ok
+			if !ok {
+				continue
+			}
+			matched = r
+			count++
 		}
+	}
+	if count == 1 {
+		return matched, true
 	}
 	return Role{}, false
 }

@@ -168,6 +168,49 @@ func TestPathScopeUnmapped(t *testing.T) {
 	}
 }
 
+func TestRoleForTokenDeniesOnMultipleMatches(t *testing.T) {
+	// Two different env vars hold the same token value. RoleForToken must deny
+	// (fail closed) rather than returning whichever role it happens to find first.
+	const yaml = `
+scopes:
+  - glob: "**"
+    scope: "path:repo"
+kind_scopes:
+  issue: "backlog:public"
+label_scopes: {}
+label_areas: {}
+roles:
+  alpha:
+    token_env: TEST_DUPE_ALPHA
+    scopes: ["path:repo"]
+  beta:
+    token_env: TEST_DUPE_BETA
+    scopes: ["path:repo"]
+`
+	cfg, err := parse([]byte(yaml))
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+
+	t.Setenv("TEST_DUPE_ALPHA", "shared-secret")
+	t.Setenv("TEST_DUPE_BETA", "shared-secret")
+
+	_, ok := cfg.RoleForToken("shared-secret")
+	if ok {
+		t.Fatal("RoleForToken should deny when two env vars share the same token value")
+	}
+
+	// A single match must still work.
+	t.Setenv("TEST_DUPE_BETA", "other-secret")
+	r, ok := cfg.RoleForToken("shared-secret")
+	if !ok {
+		t.Fatal("RoleForToken should accept a token that matches exactly one role")
+	}
+	if r.Name != "alpha" {
+		t.Errorf("RoleForToken returned role %q, want alpha", r.Name)
+	}
+}
+
 func TestDuplicateTokenEnvRefused(t *testing.T) {
 	const yaml = `
 scopes:
