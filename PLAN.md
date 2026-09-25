@@ -33,7 +33,9 @@ Items marked **(verify)** come from secondary sources and must be confirmed at k
 3. **40 Bobcoins per person, no top-ups.** Every Bob AI interaction burns coins; at 100% you can
    keep building, but not with Bob. Split work so the whole team's allocation is used. Usage:
    Bob IDE Settings > General, or the admin dashboard.
-   **Account: `ibm-coding-challenge-uat`, region `us-east`.** The invite ("you've been added to
+   **Account (confirmed Fri 22:19): organization `ibm-coding-challenge-2`, region United States
+   (East), team `ibm-hackathon-lablab`, 40 Bobcoins, Enterprise plan.** The guide said
+   `ibm-coding-challenge-uat`; the real one is `-2`. The invite ("you've been added to
    ibm-hackathon-xxxx") arrives by email **at the start of the hackathon**; check spam, search
    "IBM Bob". The "team member" wording in it is just the enterprise account, not a lablab team.
    Anyone with a personal Bob account must switch to the hackathon account in Settings, or they
@@ -559,6 +561,7 @@ Record on Sunday 16:00. Two takes, pick the better one. Upload unlisted.
 |---|---|---|
 | Fri 15:54 | New repo `lawang-onboard`, not a branch of `gablooge/lawang`. | Clean evidence of what was built during the event; Lawang's own agent rules and backlog stay untouched; no Apache/MIT question. |
 | Fri 16:10 | Screenshot naming `lawangonboard_task##_<desc>.png`; tools `setup_guide`, `starter_tasks` added; impact benchmark and leak suite promoted. | Official guide and organizers' email. |
+| Fri 22:19 | Samsul's hackathon Bob account is on `hello@samsulhadi.com` (the lablab email), org `ibm-coding-challenge-2`. The Gmail IBMid only holds a personal trial; never use it for the build. | The invite follows the lablab email. |
 | Fri 17:07 | Ryan is non-technical support; he spends his coins on the benchmark, PR reviews and the demo recording. | Coins cannot be moved between people, and his real newcomer sessions are the best impact evidence. |
 | Fri 16:34 | `gablooge/lawang` is public and `growth/` may be in the demo, so `private:growth` stays the restricted scope. | Samsul. |
 | Fri 17:00 | Issues get scope `backlog:public`; label `growth` maps to `private:growth` (issue comments inherit their issue's labels). | `growth/` has only a README; the real launch material is issues #36 to #42, and pathless items would otherwise be denied to everyone. |
