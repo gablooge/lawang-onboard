@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "lawang-onboard": {
+      "command": "go",
+      "args": ["run", "./cmd/onboard", "-stdio"],
+      "env": {
+        "ONBOARD_TOKEN": "your-token-here",
+        "ONBOARD_TOKEN_MAINTAINER": "your-maintainer-token-here",
+        "ONBOARD_TOKEN_EMPLOYEE": "your-employee-token-here",
+        "ONBOARD_TOKEN_CONTRACTOR": "your-contractor-token-here"
+      }
+    }
+  }
+}

@@ -31,6 +31,9 @@ type Config struct {
 	LabelAreas map[string]string
 	// Roles maps a role name to its Role value.
 	Roles map[string]Role
+	// tokenEnvs maps role name to the environment variable that holds its token.
+	// This is stored so that RoleForToken can resolve tokens without re-parsing.
+	tokenEnvs map[string]string
 }
 
 // rawFile mirrors the top-level structure of roles.yaml for yaml unmarshalling.
@@ -62,6 +65,33 @@ func Load(path string) (*Config, error) {
 		return nil, fmt.Errorf("roles: read %s: %w", path, err)
 	}
 	return parse(data)
+}
+
+// RoleForToken looks up the role for the given bearer token by reading each
+// role's token_env environment variable at call time. It returns the matching
+// Role and true, or the zero Role and false if the token is unknown or empty.
+// The token value is never logged or returned in error messages.
+func (cfg *Config) RoleForToken(token string) (Role, bool) {
+	if token == "" {
+		return Role{}, false
+	}
+	for name, envVar := range cfg.tokenEnvs {
+		if envVar == "" {
+			continue
+		}
+		val := os.Getenv(envVar)
+		if val != "" && val == token {
+			r, ok := cfg.Roles[name]
+			return r, ok
+		}
+	}
+	return Role{}, false
+}
+
+// TokenEnvVar returns the environment variable name that holds the token for
+// the named role, or the empty string if the role is not defined.
+func (cfg *Config) TokenEnvVar(roleName string) string {
+	return cfg.tokenEnvs[roleName]
 }
 
 // ParseBytes parses a roles.yaml from the given bytes. It is exported so that
@@ -97,8 +127,10 @@ func parse(data []byte) (*Config, error) {
 		cfg.ScopeRules = append(cfg.ScopeRules, ScopeRule{Glob: rs.Glob, Scope: rs.Scope})
 	}
 
+	cfg.tokenEnvs = make(map[string]string, len(raw.Roles))
 	for name, rr := range raw.Roles {
 		cfg.Roles[name] = Role{Name: name, Scopes: rr.Scopes}
+		cfg.tokenEnvs[name] = rr.TokenEnv
 	}
 
 	return cfg, nil
