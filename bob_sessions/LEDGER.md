@@ -15,3 +15,4 @@ recorded demo.
 | 08 | Fri 23:58 | Samsul | Ask | MCP end-to-end check as contractor: whoami = contractor (5 scopes), get growth README = withheld, no content | 0.052 | 21.409 | lawangonboard_task08_mcp_check_as_contractor_summary.png |
 | 09 | Sat 00:45 | Samsul | Agent | Ambiguous-token denial; Onboard mode, rules, tour/trace/first-week skills, /tour /trace /why commands | 1.01 | 22.419 | lawangonboard_task09_onboard_mode_skills_summary.png |
 | 10 | Sat 01:10 | Samsul | Onboard | /tour as contractor (first product run; found the withheld-count bug) | 0.370 | 22.789 | lawangonboard_task10_tour_as_contractor_summary.png |
+| 11 | Sat 01:25 | Samsul | Agent | Fix: withheld counts only scopes the role lacks; withheld tool returns per-scope and total; rules: one withheld call, no em dashes | 4.19 | 26.979 | lawangonboard_task11_withheld_fix_summary.png |
