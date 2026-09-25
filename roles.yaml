@@ -1,0 +1,38 @@
+# Synthetic demo roles. A role sees an item only if it holds ALL of the item's scopes.
+# Tokens are NOT here: each role's token comes from the environment variable named below.
+
+scopes:
+  # path globs -> scope. First match wins. A path with no match gets no scope and is denied.
+  - glob: "growth/**"
+    scope: "private:growth"
+  - glob: "SECURITY.md"
+    scope: "private:security"
+  - glob: "docs/adr/**"
+    scope: "adr:public"
+  - glob: "docs/**"
+    scope: "docs:public"
+  - glob: "README.md"
+    scope: "docs:public"
+  - glob: "internal/ingress/**"
+    scope: "path:internal/ingress"
+  - glob: "internal/provider/**"
+    scope: "path:internal/provider"
+  - glob: "internal/**"
+    scope: "path:internal/core"
+  - glob: "cmd/**"
+    scope: "path:cmd"
+  - glob: "migrations/**"
+    scope: "path:migrations"
+  - glob: "**"
+    scope: "path:repo"
+
+roles:
+  maintainer:
+    token_env: ONBOARD_TOKEN_MAINTAINER
+    scopes: ["*"]
+  employee:
+    token_env: ONBOARD_TOKEN_EMPLOYEE
+    scopes: ["path:*", "docs:*", "adr:*"]
+  contractor:
+    token_env: ONBOARD_TOKEN_CONTRACTOR
+    scopes: ["path:internal/ingress", "path:internal/provider", "docs:public", "adr:public"]

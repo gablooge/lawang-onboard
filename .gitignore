@@ -1,0 +1,24 @@
+# Build output
+/bin/
+/dist/
+*.test
+coverage.out
+
+# Secrets and local config
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+apikey*.json
+*credentials*.json
+.bob/mcp.json
+
+# Raw exports before scrubbing
+/corpus/raw/
+
+# Node, editors, OS
+node_modules/
+.idea/
+.vscode/
+.DS_Store
