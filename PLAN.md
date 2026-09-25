@@ -58,7 +58,7 @@ Items marked **(verify)** come from secondary sources and must be confirmed at k
 - [ ] Video, max 3 minutes, of which at least 90 seconds is a narrated live demo
 - [ ] Problem and solution statement, max 500 words
 - [ ] IBM Bob usage statement, max 500 words
-- [ ] Cover image
+- [x] Cover image (`docs/assets/cover.png`, from `lawang-onboard-cover-16x9-v3.png`, the one on lablab)
 - [ ] Slide deck
 - [ ] Demo application URL (must be up when judges look, so after Sunday too)
 - [ ] `DATA_SOURCES.md`

@@ -1,5 +1,7 @@
 # Lawang Onboard
 
+![Lawang Onboard](docs/assets/cover.png)
+
 **An onboarding copilot inside IBM Bob that explains a codebase to a new engineer, and only the
 parts they are allowed to see.**
 
