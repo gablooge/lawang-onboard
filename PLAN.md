@@ -272,10 +272,10 @@ Stop starting new Bob tasks at 80% spent; the last coins are for the recorded de
 
 ### Block A, 16:00 to 17:00: repository (Claude Code)
 
-- [ ] `git init` in this folder, default branch `main`.
-- [ ] Create `gablooge/lawang-onboard` on GitHub with `gh repo create`, **private for now**; it goes
+- [x] `git init` in this folder, default branch `main`. (Fri 16:40, first commit `Set up the hackathon repository`)
+- [ ] (held by Samsul, "not yet") Create `gablooge/lawang-onboard` on GitHub with `gh repo create`, **private for now**; it goes
       public before submission (Sunday 18:00). Ask Samsul before creating it.
-- [ ] Files:
+- [x] Files:
   - `README.md`: problem, how it works (the diagram above), how to run, how Bob is used, team,
     links. Placeholders where results go.
   - `LICENSE`: MIT, "Copyright (c) 2026 Lawang Onboard contributors".
@@ -297,7 +297,7 @@ Stop starting new Bob tasks at 80% spent; the last coins are for the recorded de
   - `.github/workflows/ci.yml`: gitleaks on every push, and `go test` once `go.mod` exists.
   - A pre-commit hook running `make secrets`.
 - [ ] Install `gitleaks` if missing (`brew install gitleaks`), run it once on the empty repo.
-- [ ] First commit: "Set up the hackathon repository" (no attribution trailer).
+- [x] First commit: "Set up the hackathon repository" (no attribution trailer).
 
 ### Block B, 17:00 to 18:30: corpus export (Claude Code, read-only on `../lawang`)
 
@@ -335,9 +335,9 @@ This is data preparation, not product code: it produces the dataset the product 
 
 ### Block D, 19:30 to 20:30: people (Samsul, Ryan)
 
-- [ ] **IBMid**, created with the **same email used to register on lablab** (both of us):
+- [x] (Samsul) **IBMid**, created with the **same email used to register on lablab** (both of us):
       https://www.ibm.com/account/reg/us-en/signup?formid=urx-19776
-- [ ] **Bob IDE installed, version v2.0.2 or later** (Help/About). Upgrade anything on v1.0.3 or
+- [x] (Samsul, installed; confirm version) **Bob IDE installed, version v2.0.2 or later** (Help/About). Upgrade anything on v1.0.3 or
       v2.0.0.
 - [ ] Anyone with a personal Bob account: know where Settings > account switch is, so you can
       move to `ibm-coding-challenge-uat` (us-east) the moment the invite arrives.
