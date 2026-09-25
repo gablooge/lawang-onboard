@@ -13,3 +13,4 @@ recorded demo.
 | 06 | Fri 23:35 | Samsul | Agent | Step 4 part 2: trace_feature, why, setup_guide, starter_tasks; constant-time token compare; duplicate token_env refusal | 3.82 | 21.304 | lawangonboard_task06_mcp_server_part2_summary.png |
 | 07 | Fri 23:52 | Samsul | Ask | MCP end-to-end check: whoami + get growth README (token was the maintainer one, so full access, as designed) | 0.053 | 21.357 | lawangonboard_task07_mcp_check_as_maintainer_summary.png |
 | 08 | Fri 23:58 | Samsul | Ask | MCP end-to-end check as contractor: whoami = contractor (5 scopes), get growth README = withheld, no content | 0.052 | 21.409 | lawangonboard_task08_mcp_check_as_contractor_summary.png |
+| 09 | Sat 00:45 | Samsul | Agent | Ambiguous-token denial; Onboard mode, rules, tour/trace/first-week skills, /tour /trace /why commands | 1.01 | 22.419 | lawangonboard_task09_onboard_mode_skills_summary.png |
