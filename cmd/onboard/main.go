@@ -24,6 +24,7 @@ import (
 	"github.com/gablooge/lawang-onboard/internal/corpus"
 	"github.com/gablooge/lawang-onboard/internal/roles"
 	"github.com/gablooge/lawang-onboard/internal/tools"
+	"github.com/gablooge/lawang-onboard/internal/web"
 )
 
 func main() {
@@ -31,6 +32,7 @@ func main() {
 	addrFlag := flag.String("addr", ":8080", "HTTP listen address")
 	corpusDir := flag.String("corpus", "corpus", "corpus directory")
 	rolesFile := flag.String("roles", "roles.yaml", "roles YAML file")
+	webOnly := flag.Bool("web-only", false, "serve / and /api without /mcp")
 	flag.Parse()
 
 	cfg, err := roles.Load(*rolesFile)
@@ -47,7 +49,7 @@ func main() {
 		runStdio(cfg, items)
 		return
 	}
-	runHTTP(*addrFlag, cfg, items)
+	runHTTP(*addrFlag, *webOnly, cfg, items)
 }
 
 // runStdio resolves the bearer token from ONBOARD_TOKEN once at startup and
@@ -71,25 +73,41 @@ func runStdio(cfg *roles.Config, items []corpus.Item) {
 	}
 }
 
-// runHTTP starts the streamable HTTP server. Each request creates a fresh MCP
-// server after resolving the bearer token from the Authorization header.
-// Requests with a missing or unknown token are rejected with 401.
-func runHTTP(addr string, cfg *roles.Config, items []corpus.Item) {
-	handler := mcp.NewStreamableHTTPHandler(func(r *http.Request) *mcp.Server {
-		role, ok := bearerRole(cfg, r)
-		if !ok {
-			return nil // causes 400; the outer wrapper handles 401
-		}
-		return buildServer(cfg, role, items)
-	}, &mcp.StreamableHTTPOptions{Stateless: true})
-
-	// Wrap handler to reject missing/unknown tokens with 401 before MCP sees it.
-	http.Handle("/mcp", authMiddleware(cfg, handler))
+// runHTTP starts the HTTP server. It always mounts the web UI (/ and /api).
+// Unless webOnly is true it also mounts /mcp with bearer-token auth.
+func runHTTP(addr string, webOnly bool, cfg *roles.Config, items []corpus.Item) {
+	// Mount the web UI on a fresh mux so we can return it for testing.
+	mux := buildMux(webOnly, cfg, items)
 
 	log.Printf("onboard: listening on %s", addr)
-	if err := http.ListenAndServe(addr, nil); err != nil {
+	if err := http.ListenAndServe(addr, mux); err != nil {
 		log.Fatalf("http server: %v", err)
 	}
+}
+
+// buildMux constructs the http.ServeMux for the server. It is a separate
+// function so that tests can call it without starting a listener.
+func buildMux(webOnly bool, cfg *roles.Config, items []corpus.Item) *http.ServeMux {
+	mux := http.NewServeMux()
+
+	// Mount the web UI (/, /api/...).
+	webHandler := web.Handler(cfg, items)
+	mux.Handle("/", webHandler)
+	mux.Handle("/api/", webHandler)
+
+	if !webOnly {
+		mcpHandler := mcp.NewStreamableHTTPHandler(func(r *http.Request) *mcp.Server {
+			role, ok := bearerRole(cfg, r)
+			if !ok {
+				return nil // causes 400; the outer wrapper handles 401
+			}
+			return buildServer(cfg, role, items)
+		}, &mcp.StreamableHTTPOptions{Stateless: true})
+		// Wrap handler to reject missing/unknown tokens with 401 before MCP sees it.
+		mux.Handle("/mcp", authMiddleware(cfg, mcpHandler))
+	}
+
+	return mux
 }
 
 // authMiddleware rejects requests whose Authorization header is missing or

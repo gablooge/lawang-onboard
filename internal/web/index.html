@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Lawang Onboard</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #1f2328;
+  background: #ffffff;
+}
+header {
+  background: #f7f8fa;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 16px 24px;
+}
+header h1 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2328;
+}
+header p {
+  font-size: 13px;
+  color: #57606a;
+  margin-top: 2px;
+}
+main {
+  max-width: 900px;
+  margin: 24px auto;
+  padding: 0 24px;
+}
+.controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+label { font-size: 13px; color: #57606a; }
+select, input[type=text] {
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #1f2328;
+  background: #fff;
+}
+select:focus, input[type=text]:focus {
+  outline: 2px solid #3b82d4;
+  outline-offset: 1px;
+}
+button {
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  padding: 6px 14px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #1f2328;
+  background: #f7f8fa;
+  cursor: pointer;
+}
+button:hover { background: #e5e7eb; }
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+@media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+.panel {
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.panel-header {
+  background: #f7f8fa;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 10px 14px;
+  font-weight: 600;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.panel-body {
+  padding: 12px 14px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+.search-panel {
+  grid-column: 1 / -1;
+}
+.item {
+  padding: 6px 0;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 13px;
+}
+.item:last-child { border-bottom: none; }
+.item-id {
+  font-family: "SF Mono", "Menlo", "Consolas", monospace;
+  font-size: 12px;
+  color: #3b82d4;
+}
+.item-title { color: #57606a; margin-left: 8px; }
+.score {
+  float: right;
+  font-size: 11px;
+  color: #57606a;
+  font-family: monospace;
+}
+.scope-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 13px;
+  border-bottom: 1px solid #f3f4f6;
+}
+.scope-row:last-child { border-bottom: none; }
+.scope-name { font-family: monospace; font-size: 12px; }
+.scope-count {
+  font-weight: 600;
+  color: #7c5cd8;
+}
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0 0;
+  font-weight: 600;
+  font-size: 13px;
+  border-top: 1px solid #e5e7eb;
+  margin-top: 4px;
+}
+.audit-row {
+  padding: 5px 0;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 12px;
+}
+.audit-row:last-child { border-bottom: none; }
+.audit-time { color: #57606a; font-family: monospace; }
+.audit-role { font-weight: 600; color: #3b82d4; }
+.audit-tool { color: #7c5cd8; font-family: monospace; }
+.audit-ids { color: #57606a; font-style: italic; }
+.empty { color: #57606a; font-style: italic; font-size: 13px; }
+.error { color: #cf222e; font-size: 13px; }
+.badge {
+  display: inline-block;
+  background: #f7f8fa;
+  border: 1px solid #e5e7eb;
+  border-radius: 3px;
+  padding: 1px 6px;
+  font-size: 11px;
+  font-family: monospace;
+  color: #57606a;
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Lawang Onboard</h1>
+  <p>The same question, a different answer per role, enforced in the tool layer</p>
+</header>
+<main>
+  <div class="controls">
+    <label for="roleSelect">Role:</label>
+    <select id="roleSelect"><option value="">loading...</option></select>
+    <label for="searchInput">Search:</label>
+    <input id="searchInput" type="text" placeholder="query" style="width:200px">
+    <button id="searchBtn">Search</button>
+    <button id="refreshBtn">Refresh all</button>
+  </div>
+
+  <div class="grid">
+    <div class="panel search-panel">
+      <div class="panel-header">
+        <span>Search results</span>
+        <span id="searchCount" class="badge">0</span>
+      </div>
+      <div class="panel-body" id="searchResults"><span class="empty">Enter a query and press Search.</span></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <span>System map (tour)</span>
+        <span id="tourCount" class="badge">0</span>
+      </div>
+      <div class="panel-body" id="tourResults"><span class="empty">Select a role to load.</span></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <span>Withheld</span>
+        <span id="withheldTotal" class="badge">0</span>
+      </div>
+      <div class="panel-body" id="withheldResults"><span class="empty">Select a role to load.</span></div>
+    </div>
+
+    <div class="panel" style="grid-column: 1 / -1">
+      <div class="panel-header">
+        <span>Audit log (last 200)</span>
+        <span id="auditCount" class="badge">0</span>
+      </div>
+      <div class="panel-body" id="auditResults"><span class="empty">No entries yet.</span></div>
+    </div>
+  </div>
+</main>
+<script>
+(function () {
+  var roleSelect = document.getElementById('roleSelect');
+  var searchInput = document.getElementById('searchInput');
+  var searchBtn = document.getElementById('searchBtn');
+  var refreshBtn = document.getElementById('refreshBtn');
+
+  function api(path) {
+    return fetch(path).then(function (r) { return r.json(); });
+  }
+
+  function esc(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function setEl(id, html) {
+    document.getElementById(id).innerHTML = html;
+  }
+
+  function setBadge(id, n) {
+    document.getElementById(id).textContent = String(n);
+  }
+
+  // Load roles
+  api('/api/roles').then(function (names) {
+    names.sort();
+    roleSelect.innerHTML = names.map(function (n) {
+      return '<option value="' + esc(n) + '">' + esc(n) + '</option>';
+    }).join('');
+    refreshAll();
+  }).catch(function () {
+    roleSelect.innerHTML = '<option value="">error</option>';
+  });
+
+  function currentRole() { return roleSelect.value; }
+
+  function loadTour(role) {
+    api('/api/tour?role=' + encodeURIComponent(role)).then(function (data) {
+      if (data.error) { setEl('tourResults', '<span class="error">' + esc(data.error) + '</span>'); return; }
+      var nodes = data.nodes || [];
+      setBadge('tourCount', nodes.length);
+      if (nodes.length === 0) { setEl('tourResults', '<span class="empty">No visible items.</span>'); return; }
+      setEl('tourResults', nodes.map(function (n) {
+        return '<div class="item"><span class="item-id">' + esc(n.id) + '</span>'
+          + '<span class="item-title">' + esc(n.path) + '</span></div>';
+      }).join(''));
+    });
+  }
+
+  function loadWithheld(role) {
+    api('/api/withheld?role=' + encodeURIComponent(role)).then(function (data) {
+      if (data.error) { setEl('withheldResults', '<span class="error">' + esc(data.error) + '</span>'); return; }
+      var byScope = data.by_scope || {};
+      var total = data.total || 0;
+      setBadge('withheldTotal', total);
+      var keys = Object.keys(byScope).sort();
+      if (keys.length === 0 && total === 0) {
+        setEl('withheldResults', '<span class="empty">Nothing withheld for this role.</span>');
+        return;
+      }
+      var rows = keys.map(function (k) {
+        return '<div class="scope-row"><span class="scope-name">' + esc(k) + '</span>'
+          + '<span class="scope-count">' + esc(byScope[k]) + '</span></div>';
+      }).join('');
+      rows += '<div class="total-row"><span>Total hidden items</span><span>' + esc(total) + '</span></div>';
+      setEl('withheldResults', rows);
+    });
+  }
+
+  function loadAudit(role) {
+    api('/api/audit?role=' + encodeURIComponent(role)).then(function (data) {
+      if (data.error) { setEl('auditResults', '<span class="error">' + esc(data.error) + '</span>'); return; }
+      if (!Array.isArray(data) || data.length === 0) {
+        setBadge('auditCount', 0);
+        setEl('auditResults', '<span class="empty">No entries yet.</span>');
+        return;
+      }
+      var entries = data.slice().reverse(); // newest first
+      setBadge('auditCount', entries.length);
+      setEl('auditResults', entries.map(function (e) {
+        var ids = (e.returned_ids || []).slice(0, 5).join(', ');
+        if ((e.returned_ids || []).length > 5) ids += ', ...';
+        return '<div class="audit-row">'
+          + '<span class="audit-time">' + esc((e.time || '').replace('T', ' ').replace('Z', '')) + '</span> '
+          + '<span class="audit-role">' + esc(e.role || '') + '</span> '
+          + '<span class="audit-tool">' + esc(e.tool || '') + '</span>'
+          + (ids ? '<span class="audit-ids"> [' + esc(ids) + ']</span>' : '')
+          + '</div>';
+      }).join(''));
+    });
+  }
+
+  function loadSearch(role, q) {
+    if (!q) {
+      setBadge('searchCount', 0);
+      setEl('searchResults', '<span class="empty">Enter a query and press Search.</span>');
+      return;
+    }
+    api('/api/search?role=' + encodeURIComponent(role) + '&q=' + encodeURIComponent(q)).then(function (data) {
+      if (data.error) { setEl('searchResults', '<span class="error">' + esc(data.error) + '</span>'); return; }
+      var hits = data.items || [];
+      setBadge('searchCount', hits.length);
+      if (hits.length === 0) { setEl('searchResults', '<span class="empty">No results.</span>'); return; }
+      setEl('searchResults', hits.map(function (h) {
+        return '<div class="item"><span class="score">' + (h.score || 0).toFixed(2) + '</span>'
+          + '<span class="item-id">' + esc(h.id) + '</span>'
+          + '<span class="item-title">' + esc(h.title) + '</span></div>';
+      }).join(''));
+    });
+  }
+
+  function refreshAll() {
+    var role = currentRole();
+    if (!role) return;
+    loadTour(role);
+    loadWithheld(role);
+    loadAudit(role);
+  }
+
+  roleSelect.addEventListener('change', refreshAll);
+  refreshBtn.addEventListener('click', refreshAll);
+  searchBtn.addEventListener('click', function () {
+    var role = currentRole();
+    if (!role) return;
+    loadSearch(role, searchInput.value.trim());
+    loadAudit(role);
+  });
+  searchInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { searchBtn.click(); }
+  });
+}());
+</script>
+</body>
+</html>
