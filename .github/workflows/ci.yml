@@ -25,11 +25,17 @@ jobs:
 
   go:
     runs-on: ubuntu-latest
-    if: ${{ hashFiles('go.mod') != '' }}
     steps:
       - uses: actions/checkout@v4
+      - name: is there Go code yet
+        id: gomod
+        run: |
+          if [ -f go.mod ]; then echo "present=true" >> "$GITHUB_OUTPUT"; else echo "present=false" >> "$GITHUB_OUTPUT"; echo "no go.mod yet, skipping Go checks"; fi
       - uses: actions/setup-go@v5
+        if: steps.gomod.outputs.present == 'true'
         with:
           go-version-file: go.mod
       - run: go vet ./...
+        if: steps.gomod.outputs.present == 'true'
       - run: go test -race -count=1 ./...
+        if: steps.gomod.outputs.present == 'true'
