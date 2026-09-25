@@ -21,8 +21,12 @@ internal/
   audit/            in-memory ring + append-only JSONL; records every tool call and withheld count
 ```
 
-No external dependencies beyond `github.com/modelcontextprotocol/go-sdk` and the standard
-library. `go.sum` is committed.
+Approved dependencies beyond the standard library:
+
+- `github.com/modelcontextprotocol/go-sdk` for the MCP server
+- `gopkg.in/yaml.v3` for parsing `roles.yaml` only
+
+`go.sum` is committed. No other dependencies are approved without a prior decision.
 
 ---
 
@@ -95,8 +99,9 @@ The path-to-scope mapping from `roles.yaml` is compiled into an ordered list of
 1. Collect the union of first-match scopes over `item.Paths`.
 2. `item.Scopes = deduplicated union`.
 
-A path with no glob match contributes `"(unmapped)"`. If any path maps to `"(unmapped)"`, the
-item is effectively denied for everyone except maintainer (whose `"*"` covers it).
+A path with no glob match contributes `"(unmapped)"`. An item whose scopes include `"(unmapped)"`
+is denied for every role, including maintainer. `"(unmapped)"` is never in any role's scope list,
+so `filter.Visible` denies it under rule 3. It is treated the same as a no-scope item.
 
 For commits and pull requests (which touch many paths) the scopes are the union of the scopes of
 every path. A viewer needs all of them. This is the "most restrictive wins" rule.
@@ -105,12 +110,29 @@ every path. A viewer needs all of them. This is the "most restrictive wins" rule
 
 1. If the item has any label in `label_scopes`, use the first matching label's scope.
 2. Otherwise use `kind_scopes[item.Kind]`.
-3. An issue comment carries its parent issue's labels, not its own.
+3. An issue comment carries its parent issue's labels, not its own. The issue comment's own
+   `paths` field (always empty for `issue_comment`) is ignored.
+
+`starter_tasks` finds open issues for a role by checking whether the role holds the area scope
+of at least one of the issue's labels. The area scopes come from `label_areas` in `roles.yaml`,
+which maps a label to a path scope (e.g. `provider: "path:internal/provider"`). The tool does
+not parse paths from issue text.
 
 A review comment (`kind == "review"`) has a path. It uses the path rule, scoped to its own file
 only, not to all paths of its pull request.
 
-### Wildcard matching
+### Path glob matching
+
+`roles.yaml` uses glob patterns to map repository paths to scopes. Go's `path.Match` does not
+support `**`, so `internal/roles` provides a small matcher that handles three segment types:
+
+- `*` matches any single path segment (no slash)
+- `**` matches zero or more path segments (any slash-separated run, including empty)
+- any other segment matches literally
+
+The matcher is compiled once at startup and applied in first-match order.
+
+### Scope wildcard matching
 
 `roles.Role` stores its scope list as-is from `roles.yaml`. `filter.Visible` expands wildcards:
 `"path:*"` matches any scope whose prefix is `"path:"`. The wildcard `"*"` matches everything.
@@ -200,8 +222,12 @@ Each step is a self-contained unit that can be reviewed independently before the
 
 ### Step 1: repository skeleton
 
-`go.mod`, `cmd/onboard/main.go` (stub), `Makefile` targets `vet` and `test`, `.github/` CI
-running `go vet ./...` and `go test -race ./...`. Green before anything else merges.
+`go.mod` and `cmd/onboard/main.go` (stub). The `Makefile` and `.github/` CI already exist and
+already run `go vet ./...` and `go test -race ./...` when `go.mod` is present. No other files
+are added in this step.
+
+Transport: for stdio the bearer token comes from the `ONBOARD_TOKEN` environment variable; for
+HTTP it comes from the `Authorization: Bearer` header. The token is never logged or returned.
 
 ### Step 2: `internal/corpus` and `internal/roles`
 

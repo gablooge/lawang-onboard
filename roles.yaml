@@ -35,6 +35,12 @@ kind_scopes:
   issue: "backlog:public"
   issue_comment: "backlog:public"
 
+# label_areas maps a label to the path scope that represents it.
+# starter_tasks uses this: an open issue is a starter task for a role when the role holds
+# the area scope of at least one of the issue's labels.
+label_areas:
+  provider: "path:internal/provider"
+
 roles:
   maintainer:
     token_env: ONBOARD_TOKEN_MAINTAINER
