@@ -2,6 +2,7 @@ package roles
 
 import (
 	"slices"
+	"strings"
 	"testing"
 )
 
@@ -164,5 +165,35 @@ func TestPathScopeUnmapped(t *testing.T) {
 	got := PathScope(rules, "internal/config/config.go")
 	if got != "(unmapped)" {
 		t.Errorf("PathScope = %q, want (unmapped)", got)
+	}
+}
+
+func TestDuplicateTokenEnvRefused(t *testing.T) {
+	const yaml = `
+scopes:
+  - glob: "**"
+    scope: "path:repo"
+kind_scopes:
+  issue: "backlog:public"
+label_scopes: {}
+label_areas: {}
+roles:
+  alpha:
+    token_env: SHARED_TOKEN_VAR
+    scopes: ["path:repo"]
+  beta:
+    token_env: SHARED_TOKEN_VAR
+    scopes: ["path:repo"]
+`
+	_, err := parse([]byte(yaml))
+	if err == nil {
+		t.Fatal("expected error for duplicate token_env, got nil")
+	}
+	if !strings.Contains(err.Error(), "SHARED_TOKEN_VAR") {
+		t.Errorf("error should name the shared variable, got: %v", err)
+	}
+	// Error must name both role variables.
+	if !strings.Contains(err.Error(), "alpha") || !strings.Contains(err.Error(), "beta") {
+		t.Errorf("error should name both role names, got: %v", err)
 	}
 }

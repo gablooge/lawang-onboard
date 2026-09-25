@@ -1,6 +1,7 @@
 package roles
 
 import (
+	"crypto/subtle"
 	"fmt"
 	"os"
 
@@ -80,7 +81,10 @@ func (cfg *Config) RoleForToken(token string) (Role, bool) {
 			continue
 		}
 		val := os.Getenv(envVar)
-		if val != "" && val == token {
+		if val == "" {
+			continue
+		}
+		if subtle.ConstantTimeCompare([]byte(val), []byte(token)) == 1 {
 			r, ok := cfg.Roles[name]
 			return r, ok
 		}
@@ -128,9 +132,17 @@ func parse(data []byte) (*Config, error) {
 	}
 
 	cfg.tokenEnvs = make(map[string]string, len(raw.Roles))
+	// tokenValues tracks env var name -> role name, used to detect duplicate token vars.
+	tokenValues := make(map[string]string, len(raw.Roles))
 	for name, rr := range raw.Roles {
 		cfg.Roles[name] = Role{Name: name, Scopes: rr.Scopes}
 		cfg.tokenEnvs[name] = rr.TokenEnv
+		if rr.TokenEnv != "" {
+			if prev, dup := tokenValues[rr.TokenEnv]; dup {
+				return nil, fmt.Errorf("roles: %s and %s share the same token_env variable %s", prev, name, rr.TokenEnv)
+			}
+			tokenValues[rr.TokenEnv] = name
+		}
 	}
 
 	return cfg, nil

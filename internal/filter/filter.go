@@ -50,8 +50,15 @@ func Visible(role roles.Role, item corpus.Item) bool {
 	return true
 }
 
-// roleCoversScope reports whether the role's scope list covers the required scope.
+// RoleCoversScope reports whether roleScopes covers the required scope.
 // Coverage means either an exact match or a "prefix:*" wildcard match.
+// It is exported so that tools that need per-scope checks (e.g. starter_tasks)
+// can reuse the same logic without duplicating it.
+func RoleCoversScope(roleScopes []string, need string) bool {
+	return roleCoversScope(roleScopes, need)
+}
+
+// roleCoversScope is the unexported implementation called by Visible and RoleCoversScope.
 func roleCoversScope(roleScopes []string, need string) bool {
 	for _, have := range roleScopes {
 		if have == need {

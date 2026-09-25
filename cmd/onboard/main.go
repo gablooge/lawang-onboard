@@ -65,7 +65,7 @@ func runStdio(cfg *roles.Config, items []corpus.Item) {
 		os.Exit(1)
 	}
 
-	srv := buildServer(role, items)
+	srv := buildServer(cfg, role, items)
 	if err := srv.Run(context.Background(), &mcp.StdioTransport{}); err != nil {
 		log.Fatalf("stdio server: %v", err)
 	}
@@ -80,7 +80,7 @@ func runHTTP(addr string, cfg *roles.Config, items []corpus.Item) {
 		if !ok {
 			return nil // causes 400; the outer wrapper handles 401
 		}
-		return buildServer(role, items)
+		return buildServer(cfg, role, items)
 	}, &mcp.StreamableHTTPOptions{Stateless: true})
 
 	// Wrap handler to reject missing/unknown tokens with 401 before MCP sees it.
@@ -119,13 +119,13 @@ func bearerRole(cfg *roles.Config, r *http.Request) (roles.Role, bool) {
 }
 
 // buildServer constructs an MCP server for the given role with all tools wired.
-func buildServer(role roles.Role, items []corpus.Item) *mcp.Server {
+func buildServer(cfg *roles.Config, role roles.Role, items []corpus.Item) *mcp.Server {
 	impl := &mcp.Implementation{
 		Name:    "lawang-onboard",
 		Version: "0.1.0",
 	}
 	srv := mcp.NewServer(impl, nil)
-	registerTools(srv, role, items)
+	registerTools(srv, cfg, role, items)
 	return srv
 }
 
@@ -144,8 +144,18 @@ type mapSystemArgs struct {
 	Depth int `json:"depth,omitempty" mcp:"path depth limit: 0 for no limit"`
 }
 
+type traceFeatureArgs struct {
+	Term string `json:"term" mcp:"term to trace across files, commits, reviews, and ADRs"`
+}
+
+type whyArgs struct {
+	Path string `json:"path" mcp:"repository path to explain (e.g. internal/ingress/ingress.go)"`
+}
+
+type starterTasksArgs struct{}
+
 // registerTools adds all tools to srv bound to the given role and items.
-func registerTools(srv *mcp.Server, role roles.Role, items []corpus.Item) {
+func registerTools(srv *mcp.Server, cfg *roles.Config, role roles.Role, items []corpus.Item) {
 	// whoami
 	mcp.AddTool(srv, &mcp.Tool{
 		Name:        "whoami",
@@ -188,6 +198,42 @@ func registerTools(srv *mcp.Server, role roles.Role, items []corpus.Item) {
 		Description: "Return the per-scope count of corpus items the caller cannot see.",
 	}, func(_ context.Context, _ *mcp.CallToolRequest, _ struct{}) (*mcp.CallToolResult, tools.WithheldResult, error) {
 		result := tools.Withheld(role, items)
+		return nil, result, nil
+	})
+
+	// trace_feature
+	mcp.AddTool(srv, &mcp.Tool{
+		Name:        "trace_feature",
+		Description: "Find files, commits, reviews, and ADRs related to a term, grouped by kind.",
+	}, func(_ context.Context, _ *mcp.CallToolRequest, args traceFeatureArgs) (*mcp.CallToolResult, tools.TraceFeatureResult, error) {
+		result := tools.TraceFeature(role, items, args.Term)
+		return nil, result, nil
+	})
+
+	// why
+	mcp.AddTool(srv, &mcp.Tool{
+		Name:        "why",
+		Description: "For a repository path, return commits that touched it, review comments on it, and ADRs or docs that mention it.",
+	}, func(_ context.Context, _ *mcp.CallToolRequest, args whyArgs) (*mcp.CallToolResult, tools.WhyResult, error) {
+		result := tools.Why(role, items, args.Path)
+		return nil, result, nil
+	})
+
+	// setup_guide
+	mcp.AddTool(srv, &mcp.Tool{
+		Name:        "setup_guide",
+		Description: "Return the visible parts of README.md, Makefile, and .github/workflows files.",
+	}, func(_ context.Context, _ *mcp.CallToolRequest, _ struct{}) (*mcp.CallToolResult, tools.SetupGuideResult, error) {
+		result := tools.SetupGuide(role, items)
+		return nil, result, nil
+	})
+
+	// starter_tasks
+	mcp.AddTool(srv, &mcp.Tool{
+		Name:        "starter_tasks",
+		Description: "Return open issues whose label areas are within the caller's scopes.",
+	}, func(_ context.Context, _ *mcp.CallToolRequest, _ starterTasksArgs) (*mcp.CallToolResult, tools.StarterTasksResult, error) {
+		result := tools.StarterTasks(role, items, cfg.LabelAreas)
 		return nil, result, nil
 	})
 }
