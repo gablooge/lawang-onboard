@@ -412,7 +412,7 @@ against the folder at every push.
 | 01:30 | Samsul | (manual) | `.bob/mcp.json` pointing at the local server with the contractor token; call `whoami` from Bob. |
 | 23:00 | Ryan | Ask | Accept the invite, confirm 40 coins, one cheap Ask-mode task ("summarize AGENTS.md") and its screenshot. Then rest: his work starts Saturday. |
 
-**02:00 checkpoint**: Bob in any mode calls `whoami` through MCP and gets `contractor`. Tests
+**02:00 checkpoint** (reached Fri 23:58, tasks 07 and 08): Bob in any mode calls `whoami` through MCP and gets `contractor`. Tests
 green. Push. Then **sleep**. A rested Saturday is worth more than three extra night hours.
 
 ### Starter prompt for Bob (Plan mode, 23:00)

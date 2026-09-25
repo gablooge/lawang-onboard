@@ -11,3 +11,5 @@ recorded demo.
 | 04 | Fri 22:50 | Samsul | Agent | Step 3: internal/filter (Visible, Withheld), rule table tests, leak tests vs an independent oracle, injection items | 1.36 | 7.244 | lawangonboard_task04_filter_leak_tests_summary.png |
 | 05 | Fri 23:05 | Samsul | Agent | Step 4 part 1: internal/tools (whoami, get, search, map_system, withheld), MCP wiring stdio + HTTP, auth tests | 10.24 | 17.484 | lawangonboard_task05_mcp_server_part1_summary.png |
 | 06 | Fri 23:35 | Samsul | Agent | Step 4 part 2: trace_feature, why, setup_guide, starter_tasks; constant-time token compare; duplicate token_env refusal | 3.82 | 21.304 | lawangonboard_task06_mcp_server_part2_summary.png |
+| 07 | Fri 23:52 | Samsul | Ask | MCP end-to-end check: whoami + get growth README (token was the maintainer one, so full access, as designed) | 0.053 | 21.357 | lawangonboard_task07_mcp_check_as_maintainer_summary.png |
+| 08 | Fri 23:58 | Samsul | Ask | MCP end-to-end check as contractor: whoami = contractor (5 scopes), get growth README = withheld, no content | 0.052 | 21.409 | lawangonboard_task08_mcp_check_as_contractor_summary.png |
