@@ -487,6 +487,8 @@ customModes:
 6. Is watsonx usage scored, or neutral?
 7. Does the demo URL have to stay up after the deadline, and for how long?
 8. License: is MIT required, or is any OSI-approved permissive license fine?
+9. Is using another AI tool (Claude Code) for non-product work (setup, data export, docs) fine,
+   as long as Bob builds the product and it is disclosed in the Bob usage statement?
 
 ---
 
