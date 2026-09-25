@@ -16,3 +16,4 @@ recorded demo.
 | 09 | Sat 00:45 | Samsul | Agent | Ambiguous-token denial; Onboard mode, rules, tour/trace/first-week skills, /tour /trace /why commands | 1.01 | 22.419 | lawangonboard_task09_onboard_mode_skills_summary.png |
 | 10 | Sat 01:10 | Samsul | Onboard | /tour as contractor (first product run; found the withheld-count bug) | 0.370 | 22.789 | lawangonboard_task10_tour_as_contractor_summary.png |
 | 11 | Sat 01:25 | Samsul | Agent | Fix: withheld counts only scopes the role lacks; withheld tool returns per-scope and total; rules: one withheld call, no em dashes | 4.19 | 26.979 | lawangonboard_task11_withheld_fix_summary.png |
+| 12 | Sat 06:33 | Samsul | Onboard | /tour as contractor after the withheld fix: Withheld line matches the independent count exactly (406 hidden) | 0.276 | 27.255 | lawangonboard_task12_tour_fixed_summary.png |
