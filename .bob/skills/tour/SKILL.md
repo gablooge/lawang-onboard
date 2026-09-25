@@ -13,7 +13,7 @@ Call `whoami` and state the role in one line before proceeding.
 
 ## Step 2 - Map the system
 
-Call `map_system` with `depth: 1` to get the top-level structure. Note every visible module or
+Call `map_system` with `depth: 0` to get every visible file, then group them by directory. Note every visible module or
 directory returned.
 
 ## Step 3 - Summarize modules in parallel
