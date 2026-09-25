@@ -35,7 +35,7 @@ func MapSystem(role roles.Role, items []corpus.Item, depth int) MapSystemResult 
 			continue
 		}
 		if !filter.Visible(role, item) {
-			w.Record(item)
+			w.Record(role, item)
 			continue
 		}
 		// Use the first path of the item (items with multiple paths are rare

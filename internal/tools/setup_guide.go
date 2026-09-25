@@ -45,7 +45,7 @@ func SetupGuide(role roles.Role, items []corpus.Item) SetupGuideResult {
 			continue
 		}
 		if !filter.Visible(role, item) {
-			w.Record(item)
+			w.Record(role, item)
 			continue
 		}
 		result.Items = append(result.Items, SetupItem{

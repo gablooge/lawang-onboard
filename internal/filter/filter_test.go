@@ -276,23 +276,38 @@ func TestWithheld(t *testing.T) {
 		if Visible(contractorRole, item) {
 			t.Fatal("expected denial")
 		}
-		w.Record(item)
+		w.Record(contractorRole, item)
 		s := w.Summary()
 		if s["(no-scope)"] != 1 {
 			t.Errorf("want (no-scope)=1, got %v", s)
 		}
 	})
 
-	t.Run("denied item records its scopes", func(t *testing.T) {
+	t.Run("denied item records missing scopes only", func(t *testing.T) {
 		w := make(Withheld)
 		item := corpus.Item{ID: "sec", Scopes: []string{"private:security"}}
 		if Visible(contractorRole, item) {
 			t.Fatal("expected denial")
 		}
-		w.Record(item)
+		w.Record(contractorRole, item)
 		s := w.Summary()
 		if s["private:security"] != 1 {
 			t.Errorf("want private:security=1, got %v", s)
+		}
+		// contractor holds docs:public; a denied item with that scope must NOT
+		// appear in the withheld summary.
+		itemHeld := corpus.Item{ID: "multi", Scopes: []string{"docs:public", "private:security"}}
+		w2 := make(Withheld)
+		if Visible(contractorRole, itemHeld) {
+			t.Fatal("expected denial for multi-scope item")
+		}
+		w2.Record(contractorRole, itemHeld)
+		s2 := w2.Summary()
+		if _, ok := s2["docs:public"]; ok {
+			t.Errorf("docs:public is held by contractor but appeared in withheld summary: %v", s2)
+		}
+		if s2["private:security"] != 1 {
+			t.Errorf("want private:security=1 in withheld summary, got %v", s2)
 		}
 	})
 
@@ -305,7 +320,7 @@ func TestWithheld(t *testing.T) {
 		}
 		for _, item := range items {
 			if !Visible(contractorRole, item) {
-				w.Record(item)
+				w.Record(contractorRole, item)
 			}
 		}
 		s := w.Summary()
@@ -333,10 +348,35 @@ func TestWithheld(t *testing.T) {
 		if Visible(maintainerRole, item) {
 			t.Fatal("expected denial for maintainer too")
 		}
-		w.Record(item)
+		w.Record(maintainerRole, item)
 		s := w.Summary()
 		if s["(unmapped)"] != 1 {
 			t.Errorf("want (unmapped)=1, got %v", s)
+		}
+	})
+
+	t.Run("held scopes not counted for employee", func(t *testing.T) {
+		// employee holds path:*, so path:internal/core is covered.
+		// A denied item with only path:internal/core should NOT appear
+		// in the withheld summary because employee holds path:*.
+		// (In practice employee IS allowed such items, but this verifies
+		// the Record logic in isolation with a role that cannot see the item.)
+		limitedRole := roles.Role{
+			Name:   "limited",
+			Scopes: []string{"path:internal/ingress"},
+		}
+		item := corpus.Item{ID: "core", Scopes: []string{"path:internal/core"}}
+		if Visible(limitedRole, item) {
+			t.Fatal("expected denial")
+		}
+		w := make(Withheld)
+		w.Record(limitedRole, item)
+		s := w.Summary()
+		if _, ok := s["path:internal/ingress"]; ok {
+			t.Errorf("path:internal/ingress is held by role but appeared in withheld: %v", s)
+		}
+		if s["path:internal/core"] != 1 {
+			t.Errorf("want path:internal/core=1, got %v", s)
 		}
 	})
 }

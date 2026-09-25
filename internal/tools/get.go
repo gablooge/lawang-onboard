@@ -34,7 +34,7 @@ func Get(role roles.Role, items []corpus.Item, id string) GetResult {
 			}
 		}
 		// Denied: record which scopes withheld it.
-		w.Record(item)
+		w.Record(role, item)
 		return GetResult{
 			Withheld:       true,
 			WithheldCounts: w.Summary(),

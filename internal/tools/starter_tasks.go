@@ -40,7 +40,7 @@ func StarterTasks(role roles.Role, items []corpus.Item, labelAreas map[string]st
 			continue
 		}
 		if !filter.Visible(role, item) {
-			w.Record(item)
+			w.Record(role, item)
 			continue
 		}
 		// Check whether the role holds the area scope for at least one label.

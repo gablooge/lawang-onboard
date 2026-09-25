@@ -80,15 +80,24 @@ func roleCoversScope(roleScopes []string, need string) bool {
 // The value is never a token, item title, or any user-visible text.
 type Withheld map[string]int
 
-// Record increments the withheld counts for item. It must only be called when
-// Visible returned false for the same item.
-func (w Withheld) Record(item corpus.Item) {
+// Record increments the withheld counts for a denied item.
+// It must only be called when Visible returned false for the same item.
+// Only the scopes that role does not hold are counted, because those are the
+// scopes actually responsible for the denial. The sentinels "(no-scope)" and
+// "(unmapped)" are counted as-is (they are not real scopes the role could hold).
+func (w Withheld) Record(role roles.Role, item corpus.Item) {
 	if len(item.Scopes) == 0 {
 		w["(no-scope)"]++
 		return
 	}
 	for _, s := range item.Scopes {
-		w[s]++
+		if s == "(unmapped)" {
+			w["(unmapped)"]++
+			continue
+		}
+		if !roleCoversScope(role.Scopes, s) {
+			w[s]++
+		}
 	}
 }
 

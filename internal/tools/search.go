@@ -49,7 +49,7 @@ func Search(role roles.Role, items []corpus.Item, query string, maxResults int) 
 		if filter.Visible(role, item) {
 			visible = append(visible, item)
 		} else {
-			w.Record(item)
+			w.Record(role, item)
 		}
 	}
 

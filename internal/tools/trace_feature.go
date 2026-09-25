@@ -51,7 +51,7 @@ func TraceFeature(role roles.Role, items []corpus.Item, term string) TraceFeatur
 		}
 
 		if !filter.Visible(role, item) {
-			w.Record(item)
+			w.Record(role, item)
 			continue
 		}
 

@@ -52,7 +52,7 @@ func Why(role roles.Role, items []corpus.Item, path string) WhyResult {
 		}
 
 		if !filter.Visible(role, item) {
-			w.Record(item)
+			w.Record(role, item)
 			continue
 		}
 

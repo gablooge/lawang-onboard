@@ -8,24 +8,30 @@ import (
 
 // WithheldResult is the response from the withheld tool.
 type WithheldResult struct {
-	// Summary is the accumulated withheld counts from the current call.
-	Summary map[string]int `json:"summary"`
+	// ByScope is the count of hidden items per missing scope across the whole corpus.
+	ByScope map[string]int `json:"by_scope"`
+	// Total is the number of corpus items the role cannot see.
+	Total int `json:"total"`
 	// Withheld is always empty for this tool (it reports on others).
 	Withheld map[string]int `json:"withheld"`
 }
 
-// Withheld scans all corpus items for the role and returns the total per-scope
-// count of items denied. It gives a session-wide summary of what the role
-// cannot see without revealing any item contents or IDs.
+// Withheld scans all corpus items for the role and returns, for the whole
+// corpus, the number of hidden items per missing scope and a total of hidden
+// items. It gives a session-wide summary of what the role cannot see without
+// revealing any item contents or IDs.
 func Withheld(role roles.Role, items []corpus.Item) WithheldResult {
 	w := filter.Withheld{}
+	total := 0
 	for _, item := range items {
 		if !filter.Visible(role, item) {
-			w.Record(item)
+			w.Record(role, item)
+			total++
 		}
 	}
 	return WithheldResult{
-		Summary:  w.Summary(),
+		ByScope:  w.Summary(),
+		Total:    total,
 		Withheld: map[string]int{},
 	}
 }

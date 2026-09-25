@@ -195,7 +195,7 @@ func registerTools(srv *mcp.Server, cfg *roles.Config, role roles.Role, items []
 	// withheld
 	mcp.AddTool(srv, &mcp.Tool{
 		Name:        "withheld",
-		Description: "Return the per-scope count of corpus items the caller cannot see.",
+		Description: "Return the number of hidden items per missing scope plus a total of hidden items, across the whole corpus.",
 	}, func(_ context.Context, _ *mcp.CallToolRequest, _ struct{}) (*mcp.CallToolResult, tools.WithheldResult, error) {
 		result := tools.Withheld(role, items)
 		return nil, result, nil
