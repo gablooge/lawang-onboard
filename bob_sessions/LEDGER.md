@@ -9,3 +9,4 @@ recorded demo.
 | 02 | Fri 22:33 | Samsul | Plan | Design: docs/design.md (package layout, filter, scope computation, leak tests, build order) | 0.468 | 0.564 | lawangonboard_task02_design_plan_summary.png |
 | 03 | Fri 22:37 | Samsul | Agent | Steps 1 and 2: go.mod, cmd/onboard stub, internal/roles (glob matcher), internal/corpus, tests | 5.32 | 5.884 | lawangonboard_task03_corpus_roles_loader_summary.png |
 | 04 | Fri 22:50 | Samsul | Agent | Step 3: internal/filter (Visible, Withheld), rule table tests, leak tests vs an independent oracle, injection items | 1.36 | 7.244 | lawangonboard_task04_filter_leak_tests_summary.png |
+| 05 | Fri 23:05 | Samsul | Agent | Step 4 part 1: internal/tools (whoami, get, search, map_system, withheld), MCP wiring stdio + HTTP, auth tests | 10.24 | 17.484 | lawangonboard_task05_mcp_server_part1_summary.png |
