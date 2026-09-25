@@ -10,3 +10,4 @@ recorded demo.
 | 03 | Fri 22:37 | Samsul | Agent | Steps 1 and 2: go.mod, cmd/onboard stub, internal/roles (glob matcher), internal/corpus, tests | 5.32 | 5.884 | lawangonboard_task03_corpus_roles_loader_summary.png |
 | 04 | Fri 22:50 | Samsul | Agent | Step 3: internal/filter (Visible, Withheld), rule table tests, leak tests vs an independent oracle, injection items | 1.36 | 7.244 | lawangonboard_task04_filter_leak_tests_summary.png |
 | 05 | Fri 23:05 | Samsul | Agent | Step 4 part 1: internal/tools (whoami, get, search, map_system, withheld), MCP wiring stdio + HTTP, auth tests | 10.24 | 17.484 | lawangonboard_task05_mcp_server_part1_summary.png |
+| 06 | Fri 23:35 | Samsul | Agent | Step 4 part 2: trace_feature, why, setup_guide, starter_tasks; constant-time token compare; duplicate token_env refusal | 3.82 | 21.304 | lawangonboard_task06_mcp_server_part2_summary.png |

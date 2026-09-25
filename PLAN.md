@@ -555,6 +555,12 @@ Record on Sunday 16:00. Two takes, pick the better one. Upload unlisted.
 | Track mismatch | Same engine, different framing (section 6 decision). |
 | A secret gets committed | Rotate it first, then rewrite, then tell the organizers if it was an IBM credential. |
 
+## Open fixes (carry into the next Bob task)
+
+- [ ] `RoleForToken`: the duplicate check compares variable names, not values. If two roles' env
+      vars hold the same token value, the first match in map order wins. Fix: count matches and deny
+      when more than one role matches (fail closed), with a test.
+
 ## 14. Decision log
 
 | When | Decision | Why |
