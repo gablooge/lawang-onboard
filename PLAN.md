@@ -273,7 +273,7 @@ Stop starting new Bob tasks at 80% spent; the last coins are for the recorded de
 ### Block A, 16:00 to 17:00: repository (Claude Code)
 
 - [x] `git init` in this folder, default branch `main`. (Fri 16:40, first commit `Set up the hackathon repository`)
-- [ ] (held by Samsul, "not yet") Create `gablooge/lawang-onboard` on GitHub with `gh repo create`, **private for now**; it goes
+- [x] (Fri 16:55, private) Create `gablooge/lawang-onboard` on GitHub with `gh repo create`, **private for now**; it goes
       public before submission (Sunday 18:00). Ask Samsul before creating it.
 - [x] Files:
   - `README.md`: problem, how it works (the diagram above), how to run, how Bob is used, team,
