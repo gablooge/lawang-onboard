@@ -17,3 +17,4 @@ recorded demo.
 | 10 | Sat 01:10 | Samsul | Onboard | /tour as contractor (first product run; found the withheld-count bug) | 0.370 | 22.789 | lawangonboard_task10_tour_as_contractor_summary.png |
 | 11 | Sat 01:25 | Samsul | Agent | Fix: withheld counts only scopes the role lacks; withheld tool returns per-scope and total; rules: one withheld call, no em dashes | 4.19 | 26.979 | lawangonboard_task11_withheld_fix_summary.png |
 | 12 | Sat 06:33 | Samsul | Onboard | /tour as contractor after the withheld fix: Withheld line matches the independent count exactly (406 hidden) | 0.276 | 27.255 | lawangonboard_task12_tour_fixed_summary.png |
+| 13 | Sat 06:40 | Samsul | Agent | Demo page (embedded index.html), /api roles/tour/withheld/search/audit, internal/audit ring, -web-only flag | 2.33 | 29.585 | lawangonboard_task13_demo_page_api_summary.png |
