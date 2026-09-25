@@ -6,8 +6,11 @@ filter is built: these are expectations, and the leak suite is what proves them.
 ## 1. "Give me the tour."
 
 - **Contractor**: `internal/ingress` and `internal/provider` (7 source files), the public docs
-  (`README.md`, `docs/architecture.md`, roadmap, backlog), all 6 ADRs, and the 6 commits and 3
-  pull requests that touch only those paths, with their reviews. Withheld: everything under
+  (`README.md`, `docs/architecture.md`, roadmap, backlog), all 6 ADRs, the 36 backlog issues, and only the 3 commits (`1c9129e`, `7d86e5a`, `db97eaf`)
+  that touch nothing outside those paths. No pull request qualifies: every one of the 13 also
+  touches something else, so a contractor sees none of the review threads. That is correct under
+  the most-restrictive rule, but thin for `/why`; decide at kickoff whether a PR's review comments
+  should be scoped by the path each comment is on (review comments carry their own path). Withheld: everything under
   `internal/` outside those two packages, `cmd/`, `migrations/`, `SECURITY.md`, `growth/`, and
   every commit or PR that also touches one of those.
 - **Maintainer**: the whole system.
