@@ -19,3 +19,4 @@ recorded demo.
 | 12 | Sat 06:33 | Samsul | Onboard | /tour as contractor after the withheld fix: Withheld line matches the independent count exactly (406 hidden) | 0.276 | 27.255 | lawangonboard_task12_tour_fixed_summary.png |
 | 13 | Sat 06:40 | Samsul | Agent | Demo page (embedded index.html), /api roles/tour/withheld/search/audit, internal/audit ring, -web-only flag | 2.33 | 29.585 | lawangonboard_task13_demo_page_api_summary.png |
 | 14 | Sat 07:05 | Samsul | Agent | /api/audit filtered by role (test: no cross-role entries or hidden ids), centered layout, UTC labels, demo note | 0.938 | 30.523 | lawangonboard_task14_audit_filter_layout_summary.png |
+| 15 | Sat 08:36 | Samsul | Onboard | /tour as contractor, final: provider files, fake, registry and ADRs covered; Withheld exact (406). Video take. Bob also mirrored /why as a skill | 0.480 | 31.003 | lawangonboard_task15_tour_final_summary.png |

@@ -12,7 +12,7 @@ Tools: **Bob** = IBM Bob IDE (the product and its evidence; Samsul has about 9.5
 claude.ai chat linked to this folder: docs, statements, ledger, benchmark write-up, slides.
 **Human** = no AI tool needed.
 
-### A. Keep the demo up (now)
+### A. Keep the demo up (done Sat 08:33)
 | # | Task | Who | Tool |
 |---|---|---|---|
 | A1 | Phone check on mobile data: page loads, `/robots.txt` is a 404 not a Cloudflare 502, tunnel shows Healthy | Samsul | Human |
@@ -23,7 +23,7 @@ claude.ai chat linked to this folder: docs, statements, ledger, benchmark write-
 ### B. Product polish (Sat morning)
 | # | Task | Who | Tool |
 |---|---|---|---|
-| B1 | `/tour` as contractor after the depth fix; confirm it lists provider files; this is the video take | Samsul | Bob, Onboard mode (~0.3) |
+| B1 | (done, task 15) `/tour` as contractor after the depth fix; confirm it lists provider files; this is the video take | Samsul | Bob, Onboard mode (~0.3) |
 | B2 | Bob code review of the repo (its review feature), findings saved to `docs/review.md` | Ryan | Bob review (~3, Ryan's coins) |
 | B3 | Fix the review findings that matter (security first) | Samsul | Bob, Agent (~2) |
 | B4 | One `/trace webhook` and one `/first-week` run as contractor, for the video and slides | Ryan | Bob, Onboard (~0.5 each) |
