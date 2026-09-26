@@ -1,6 +1,6 @@
 # lablab submission form answers (draft)
 
-**Project name:** Lawang Onboard: AI Onboarding That Knows Your Role
+**Project name:** Lawang Onboard: Permission-Aware AI Onboarding
 
 **One line (under 100 characters):** An onboarding copilot in IBM Bob that only shows what your role may see.
 
