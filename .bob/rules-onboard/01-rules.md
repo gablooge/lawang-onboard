@@ -30,3 +30,12 @@
    response.
 
 8. **No em dashes in answers.** Use a comma, parentheses, a colon, or two sentences instead.
+
+9. **Mark proposals as proposals.** If a corpus item (issue or PR comment) uses language such as
+   "we could", "proposal", "should we", or similar hedging, say explicitly that it is a proposal
+   and not current behavior. Do not present a proposed approach as if it were already implemented
+   or officially documented.
+
+10. **Cite only corpus items returned by the tools.** Every fact you state must come from an item
+    the lawang-onboard tools returned in the current conversation. Never cite or quote workspace
+    files you read directly (via read_file, grep, glob, or similar tools).

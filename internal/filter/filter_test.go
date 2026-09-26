@@ -19,7 +19,7 @@ var employeeRole = roles.Role{
 // contractorRole holds specific scopes only.
 var contractorRole = roles.Role{
 	Name:   "contractor",
-	Scopes: []string{"path:internal/ingress", "path:internal/provider", "docs:public", "adr:public", "backlog:public"},
+	Scopes: []string{"path:internal/ingress", "path:internal/provider", "docs:public", "adr:public", "backlog:public", "setup:public"},
 }
 
 func TestVisible(t *testing.T) {
@@ -254,6 +254,46 @@ func TestVisible(t *testing.T) {
 			name: "contractor: unknown scope denied",
 			role: contractorRole,
 			item: corpus.Item{ID: "unk", Scopes: []string{"unknown:thing"}},
+			want: false,
+		},
+
+		// ----------------------------------------------------------------
+		// setup:public - contractor sees Makefile and CI, not private/path:repo
+		// ----------------------------------------------------------------
+		{
+			name: "contractor: allow setup:public (Makefile)",
+			role: contractorRole,
+			item: corpus.Item{ID: "file-Makefile", Scopes: []string{"setup:public"}},
+			want: true,
+		},
+		{
+			name: "contractor: allow setup:public (.github/workflows/ci.yml)",
+			role: contractorRole,
+			item: corpus.Item{ID: "file-.github-workflows-ci.yml", Scopes: []string{"setup:public"}},
+			want: true,
+		},
+		{
+			name: "contractor: deny path:repo",
+			role: contractorRole,
+			item: corpus.Item{ID: "file-go.sum", Scopes: []string{"path:repo"}},
+			want: false,
+		},
+		{
+			name: "contractor: deny path:cmd",
+			role: contractorRole,
+			item: corpus.Item{ID: "file-cmd-main", Scopes: []string{"path:cmd"}},
+			want: false,
+		},
+		{
+			name: "contractor: deny private:growth",
+			role: contractorRole,
+			item: corpus.Item{ID: "growth2", Scopes: []string{"private:growth"}},
+			want: false,
+		},
+		{
+			name: "contractor: deny private:security",
+			role: contractorRole,
+			item: corpus.Item{ID: "sec2", Scopes: []string{"private:security"}},
 			want: false,
 		},
 	}

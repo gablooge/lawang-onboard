@@ -23,6 +23,16 @@ scopes:
     scope: "path:cmd"
   - glob: "migrations/**"
     scope: "path:migrations"
+  - glob: "Makefile"
+    scope: "setup:public"
+  - glob: ".github/**"
+    scope: "setup:public"
+  - glob: "go.mod"
+    scope: "setup:public"
+  - glob: ".golangci.yml"
+    scope: "setup:public"
+  - glob: "sqlc.yaml"
+    scope: "setup:public"
   - glob: "**"
     scope: "path:repo"
 
@@ -47,7 +57,7 @@ roles:
     scopes: ["*"]
   employee:
     token_env: ONBOARD_TOKEN_EMPLOYEE
-    scopes: ["path:*", "docs:*", "adr:*", "backlog:*"]
+    scopes: ["path:*", "docs:*", "adr:*", "backlog:*", "setup:*"]
   contractor:
     token_env: ONBOARD_TOKEN_CONTRACTOR
-    scopes: ["path:internal/ingress", "path:internal/provider", "docs:public", "adr:public", "backlog:public"]
+    scopes: ["path:internal/ingress", "path:internal/provider", "docs:public", "adr:public", "backlog:public", "setup:public"]
