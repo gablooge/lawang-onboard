@@ -20,3 +20,4 @@ recorded demo.
 | 13 | Sat 06:40 | Samsul | Agent | Demo page (embedded index.html), /api roles/tour/withheld/search/audit, internal/audit ring, -web-only flag | 2.33 | 29.585 | lawangonboard_task13_demo_page_api_summary.png |
 | 14 | Sat 07:05 | Samsul | Agent | /api/audit filtered by role (test: no cross-role entries or hidden ids), centered layout, UTC labels, demo note | 0.938 | 30.523 | lawangonboard_task14_audit_filter_layout_summary.png |
 | 15 | Sat 08:36 | Samsul | Onboard | /tour as contractor, final: provider files, fake, registry and ADRs covered; Withheld exact (406). Video take. Bob also mirrored /why as a skill | 0.480 | 31.003 | lawangonboard_task15_tour_final_summary.png |
+| 16 | Sat 09:40 | Ryan | Onboard | whoami through the hosted server (https, Cloudflare Tunnel) with the contractor token: contractor, Withheld 406 | 0.032 | Ryan 0.032 | lawangonboard_task16_ryan_whoami_remote_summary.png |
