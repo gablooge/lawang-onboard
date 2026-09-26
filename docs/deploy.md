@@ -21,6 +21,12 @@ local config file. It has one public hostname:
 its own for this demo, never one that already serves another app: every connector on a tunnel
 receives traffic for every hostname on it.
 
+Only the compose `cloudflared` service may run a connector for this tunnel. Do not run the
+dashboard's "install connector" command (`cloudflared service install ...`) on the host: a
+host-level connector cannot resolve `onboard`, so its share of requests fails with 502. If the
+dashboard shows more than one connector, remove the extra one (on macOS:
+`sudo cloudflared service uninstall`).
+
 ## Secrets
 
 Two files, both gitignored, never committed and never printed:
