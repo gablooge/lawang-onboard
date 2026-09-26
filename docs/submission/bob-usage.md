@@ -30,8 +30,13 @@ Total: TODO of 80 Bobcoins across two team members.
 ## What was done outside Bob
 
 Before kickoff, with Claude Code: repository setup, the data export script that turns the Lawang
-repository into `corpus/`, CI and secret scanning, and drafts of these documents. No product code
-was written outside Bob. TODO: update if that changes, and say what.
+repository into `corpus/`, CI and secret scanning, and drafts of these documents. During the
+event, with Claude Code: the Docker and Cloudflare Tunnel deployment (Dockerfile, compose.yaml,
+docs/deploy.md) and bookkeeping of `bob_sessions/`. Two one-line configuration edits were made
+by hand after review (removing the `read` group from the Onboard mode so it can only see the
+codebase through the MCP server, and the tour skill's `map_system` depth). Every line of product
+code (filter, corpus loader, MCP server and tools, audit, web API and page, Onboard mode, rules,
+skills and commands) was written by IBM Bob, as the task screenshots show.
 
 ## What we learned
 
