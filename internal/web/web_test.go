@@ -57,9 +57,12 @@ roles:
     scopes: ["path:internal/ingress", "path:internal/provider", "docs:public", "adr:public", "backlog:public"]
 `
 
-// testCfg parses rolesYAML.
+// testCfg parses rolesYAML and sets deterministic token env vars for this test run.
 func testCfg(t *testing.T) *roles.Config {
 	t.Helper()
+	t.Setenv("TEST_WEB_TOKEN_MAINTAINER", "tok-web-maintainer")
+	t.Setenv("TEST_WEB_TOKEN_EMPLOYEE", "tok-web-employee")
+	t.Setenv("TEST_WEB_TOKEN_CONTRACTOR", "tok-web-contractor")
 	cfg, err := roles.ParseBytes([]byte(rolesYAML))
 	if err != nil {
 		t.Fatalf("parse roles: %v", err)
@@ -98,7 +101,7 @@ func testItems() []corpus.Item {
 	}
 }
 
-// do performs a GET to path on the given handler.
+// do performs a GET to path on the given handler (no Authorization header).
 func do(h http.Handler, path string) *httptest.ResponseRecorder {
 	req := httptest.NewRequest(http.MethodGet, path, nil)
 	rec := httptest.NewRecorder()
@@ -106,10 +109,21 @@ func do(h http.Handler, path string) *httptest.ResponseRecorder {
 	return rec
 }
 
-// TestGetRoles_OK tests that /api/roles returns all three role names.
+// doWithToken performs a GET with an Authorization: Bearer header.
+func doWithToken(h http.Handler, path, token string) *httptest.ResponseRecorder {
+	req := httptest.NewRequest(http.MethodGet, path, nil)
+	if token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+	return rec
+}
+
+// TestGetRoles_OK tests that /api/roles returns all three role names (public, no token needed).
 func TestGetRoles_OK(t *testing.T) {
 	cfg := testCfg(t)
-	h := Handler(cfg, testItems())
+	h := Handler(cfg, testItems(), Options{})
 	rec := do(h, "/api/roles")
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200", rec.Code)
@@ -132,38 +146,111 @@ func TestGetRoles_OK(t *testing.T) {
 	}
 }
 
-// TestGetTour_UnknownRole verifies that an unknown role returns 400.
-func TestGetTour_UnknownRole(t *testing.T) {
+// TestAPIWithoutToken verifies that /api/* returns 401 with no token (default mode).
+func TestAPIWithoutToken(t *testing.T) {
 	cfg := testCfg(t)
-	h := Handler(cfg, testItems())
-	rec := do(h, "/api/tour?role=ghost")
-	if rec.Code != http.StatusBadRequest {
-		t.Errorf("status = %d, want 400", rec.Code)
+	h := Handler(cfg, testItems(), Options{})
+	for _, path := range []string{"/api/tour", "/api/withheld", "/api/search?q=x", "/api/audit"} {
+		rec := do(h, path)
+		if rec.Code != http.StatusUnauthorized {
+			t.Errorf("%s: status = %d, want 401", path, rec.Code)
+		}
 	}
 }
 
-// TestGetTour_MissingRole verifies that omitting role returns 400.
-func TestGetTour_MissingRole(t *testing.T) {
+// TestAPIRolesPublic verifies /api/roles is always public regardless of mode.
+func TestAPIRolesPublic(t *testing.T) {
 	cfg := testCfg(t)
-	h := Handler(cfg, testItems())
-	rec := do(h, "/api/tour")
-	if rec.Code != http.StatusBadRequest {
-		t.Errorf("status = %d, want 400", rec.Code)
-	}
-}
-
-// tourRole calls /api/tour?role=<name> and returns the decoded nodes.
-func tourRole(t *testing.T, h http.Handler, role string) []map[string]any {
-	t.Helper()
-	rec := do(h, "/api/tour?role="+role)
+	h := Handler(cfg, testItems(), Options{})
+	rec := do(h, "/api/roles")
 	if rec.Code != http.StatusOK {
-		t.Fatalf("[%s] tour status = %d, want 200", role, rec.Code)
+		t.Errorf("/api/roles without token: status = %d, want 200", rec.Code)
+	}
+}
+
+// TestAPIWithToken verifies that a valid Bearer token grants access and returns data.
+func TestAPIWithToken(t *testing.T) {
+	cfg := testCfg(t)
+	h := Handler(cfg, testItems(), Options{})
+	// Maintainer token should see the tour.
+	rec := doWithToken(h, "/api/tour", "tok-web-maintainer")
+	if rec.Code != http.StatusOK {
+		t.Errorf("maintainer tour: status = %d, want 200", rec.Code)
+	}
+}
+
+// TestAPIContractorTokenCannotSeePrivate verifies that a contractor Bearer token
+// never exposes maintainer-only items, even if ?role=maintainer is supplied.
+func TestAPIContractorTokenCannotSeePrivate(t *testing.T) {
+	cfg := testCfg(t)
+	h := Handler(cfg, testItems(), Options{})
+
+	// Pass contractor token but try to request maintainer role via query param.
+	// The handler must ignore the query param and use the token-resolved role.
+	rec := doWithToken(h, "/api/tour?role=maintainer", "tok-web-contractor")
+	if rec.Code != http.StatusOK {
+		t.Fatalf("contractor tour: status = %d, want 200", rec.Code)
 	}
 	var body struct {
 		Nodes []map[string]any `json:"nodes"`
 	}
 	if err := json.NewDecoder(rec.Body).Decode(&body); err != nil {
-		t.Fatalf("[%s] decode: %v", role, err)
+		t.Fatalf("decode: %v", err)
+	}
+	for _, n := range body.Nodes {
+		id, _ := n["id"].(string)
+		if id == "file:SECURITY.md" {
+			t.Error("contractor token must not expose SECURITY.md even with ?role=maintainer")
+		}
+		if id == "doc:growth/README.md" {
+			t.Error("contractor token must not expose growth/README.md even with ?role=maintainer")
+		}
+	}
+}
+
+// TestAPIWithWrongToken verifies that an unknown token returns 401.
+func TestAPIWithWrongToken(t *testing.T) {
+	cfg := testCfg(t)
+	h := Handler(cfg, testItems(), Options{})
+	rec := doWithToken(h, "/api/tour", "not-a-real-token")
+	if rec.Code != http.StatusUnauthorized {
+		t.Errorf("wrong token: status = %d, want 401", rec.Code)
+	}
+}
+
+// TestDemoRolesMode verifies that when DemoRoles is on, ?role= is accepted.
+func TestDemoRolesMode(t *testing.T) {
+	cfg := testCfg(t)
+	h := Handler(cfg, testItems(), Options{DemoRoles: true})
+	// Should accept role by query param without any token.
+	rec := do(h, "/api/tour?role=contractor")
+	if rec.Code != http.StatusOK {
+		t.Errorf("demo-roles tour: status = %d, want 200", rec.Code)
+	}
+	// Missing role still returns 400.
+	rec = do(h, "/api/tour")
+	if rec.Code != http.StatusBadRequest {
+		t.Errorf("demo-roles missing role: status = %d, want 400", rec.Code)
+	}
+	// Unknown role still returns 400.
+	rec = do(h, "/api/tour?role=ghost")
+	if rec.Code != http.StatusBadRequest {
+		t.Errorf("demo-roles unknown role: status = %d, want 400", rec.Code)
+	}
+}
+
+// tourWithToken calls /api/tour with a Bearer token and returns the decoded nodes.
+func tourWithToken(t *testing.T, h http.Handler, token string) []map[string]any {
+	t.Helper()
+	rec := doWithToken(h, "/api/tour", token)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("tour status = %d, want 200", rec.Code)
+	}
+	var body struct {
+		Nodes []map[string]any `json:"nodes"`
+	}
+	if err := json.NewDecoder(rec.Body).Decode(&body); err != nil {
+		t.Fatalf("decode: %v", err)
 	}
 	return body.Nodes
 }
@@ -172,11 +259,11 @@ func tourRole(t *testing.T, h http.Handler, role string) []map[string]any {
 func TestGetTour_EachRole(t *testing.T) {
 	cfg := testCfg(t)
 	items := testItems()
-	h := Handler(cfg, items)
+	h := Handler(cfg, items, Options{})
 
-	maintainerNodes := tourRole(t, h, "maintainer")
-	employeeNodes := tourRole(t, h, "employee")
-	contractorNodes := tourRole(t, h, "contractor")
+	maintainerNodes := tourWithToken(t, h, "tok-web-maintainer")
+	employeeNodes := tourWithToken(t, h, "tok-web-employee")
+	contractorNodes := tourWithToken(t, h, "tok-web-contractor")
 
 	// Maintainer sees everything (including SECURITY.md and growth items).
 	if len(maintainerNodes) <= len(employeeNodes) {
@@ -214,26 +301,16 @@ func TestGetTour_EachRole(t *testing.T) {
 	}
 }
 
-// TestGetWithheld_UnknownRole verifies 400 for unknown role.
-func TestGetWithheld_UnknownRole(t *testing.T) {
-	cfg := testCfg(t)
-	h := Handler(cfg, testItems())
-	rec := do(h, "/api/withheld?role=ghost")
-	if rec.Code != http.StatusBadRequest {
-		t.Errorf("status = %d, want 400", rec.Code)
-	}
-}
-
-// withheldRole calls /api/withheld?role=<name> and returns the decoded result.
-func withheldRole(t *testing.T, h http.Handler, role string) map[string]any {
+// withheldWithToken calls /api/withheld with a Bearer token and returns the decoded result.
+func withheldWithToken(t *testing.T, h http.Handler, token string) map[string]any {
 	t.Helper()
-	rec := do(h, "/api/withheld?role="+role)
+	rec := doWithToken(h, "/api/withheld", token)
 	if rec.Code != http.StatusOK {
-		t.Fatalf("[%s] withheld status = %d, want 200", role, rec.Code)
+		t.Fatalf("withheld status = %d, want 200", rec.Code)
 	}
 	var body map[string]any
 	if err := json.NewDecoder(rec.Body).Decode(&body); err != nil {
-		t.Fatalf("[%s] decode: %v", role, err)
+		t.Fatalf("decode: %v", err)
 	}
 	return body
 }
@@ -242,10 +319,10 @@ func withheldRole(t *testing.T, h http.Handler, role string) map[string]any {
 func TestGetWithheld_EachRole(t *testing.T) {
 	cfg := testCfg(t)
 	items := testItems()
-	h := Handler(cfg, items)
+	h := Handler(cfg, items, Options{})
 
-	maintainerBody := withheldRole(t, h, "maintainer")
-	contractorBody := withheldRole(t, h, "contractor")
+	maintainerBody := withheldWithToken(t, h, "tok-web-maintainer")
+	contractorBody := withheldWithToken(t, h, "tok-web-contractor")
 
 	maintainerTotal := int(maintainerBody["total"].(float64))
 	contractorTotal := int(contractorBody["total"].(float64))
@@ -260,22 +337,12 @@ func TestGetWithheld_EachRole(t *testing.T) {
 	}
 }
 
-// TestGetSearch_UnknownRole verifies 400.
-func TestGetSearch_UnknownRole(t *testing.T) {
-	cfg := testCfg(t)
-	h := Handler(cfg, testItems())
-	rec := do(h, "/api/search?role=ghost&q=ingress")
-	if rec.Code != http.StatusBadRequest {
-		t.Errorf("status = %d, want 400", rec.Code)
-	}
-}
-
-// searchRole calls /api/search?role=<name>&q=<q> and returns the hit IDs.
-func searchRole(t *testing.T, h http.Handler, role, q string) []string {
+// searchWithToken calls /api/search with a Bearer token and returns the hit IDs.
+func searchWithToken(t *testing.T, h http.Handler, token, q string) []string {
 	t.Helper()
-	rec := do(h, "/api/search?role="+role+"&q="+q)
+	rec := doWithToken(h, "/api/search?q="+q, token)
 	if rec.Code != http.StatusOK {
-		t.Fatalf("[%s] search status = %d, want 200", role, rec.Code)
+		t.Fatalf("search status = %d, want 200", rec.Code)
 	}
 	var body struct {
 		Items []struct {
@@ -283,7 +350,7 @@ func searchRole(t *testing.T, h http.Handler, role, q string) []string {
 		} `json:"items"`
 	}
 	if err := json.NewDecoder(rec.Body).Decode(&body); err != nil {
-		t.Fatalf("[%s] decode: %v", role, err)
+		t.Fatalf("decode: %v", err)
 	}
 	ids := make([]string, len(body.Items))
 	for i, it := range body.Items {
@@ -296,10 +363,10 @@ func searchRole(t *testing.T, h http.Handler, role, q string) []string {
 func TestGetSearch_EachRole(t *testing.T) {
 	cfg := testCfg(t)
 	items := testItems()
-	h := Handler(cfg, items)
+	h := Handler(cfg, items, Options{})
 
 	// "security" appears only in SECURITY.md (private:security). Contractor cannot see it.
-	contractorIDs := searchRole(t, h, "contractor", "security")
+	contractorIDs := searchWithToken(t, h, "tok-web-contractor", "security")
 	for _, id := range contractorIDs {
 		if id == "file:SECURITY.md" {
 			t.Error("contractor should not receive SECURITY.md in search results")
@@ -307,7 +374,7 @@ func TestGetSearch_EachRole(t *testing.T) {
 	}
 
 	// Maintainer can see SECURITY.md (scope "*").
-	maintainerIDs := searchRole(t, h, "maintainer", "security")
+	maintainerIDs := searchWithToken(t, h, "tok-web-maintainer", "security")
 	found := false
 	for _, id := range maintainerIDs {
 		if id == "file:SECURITY.md" {
@@ -319,21 +386,11 @@ func TestGetSearch_EachRole(t *testing.T) {
 	}
 
 	// Employee cannot see SECURITY.md (private:security not in employee scopes).
-	employeeIDs := searchRole(t, h, "employee", "security")
+	employeeIDs := searchWithToken(t, h, "tok-web-employee", "security")
 	for _, id := range employeeIDs {
 		if id == "file:SECURITY.md" {
 			t.Error("employee should not see SECURITY.md in search results")
 		}
-	}
-}
-
-// TestGetAudit_UnknownRole verifies 400.
-func TestGetAudit_UnknownRole(t *testing.T) {
-	cfg := testCfg(t)
-	h := Handler(cfg, testItems())
-	rec := do(h, "/api/audit?role=ghost")
-	if rec.Code != http.StatusBadRequest {
-		t.Errorf("status = %d, want 400", rec.Code)
 	}
 }
 
@@ -345,12 +402,12 @@ func TestGetAudit_OK(t *testing.T) {
 	t.Cleanup(func() { audit.Global = prev })
 
 	cfg := testCfg(t)
-	h := Handler(cfg, testItems())
+	h := Handler(cfg, testItems(), Options{})
 
 	// Call tour to produce an audit entry.
-	do(h, "/api/tour?role=maintainer")
+	doWithToken(h, "/api/tour", "tok-web-maintainer")
 
-	rec := do(h, "/api/audit?role=maintainer")
+	rec := doWithToken(h, "/api/audit", "tok-web-maintainer")
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200", rec.Code)
 	}
@@ -372,7 +429,7 @@ func TestGetAudit_OK(t *testing.T) {
 }
 
 // TestGetAudit_RoleFilter verifies that /api/audit returns only entries for the
-// requested role. A contractor must not see maintainer entries, and must not
+// authenticated role. A contractor must not see maintainer entries, and must not
 // receive any item ID that is outside the contractor's allowed scopes.
 func TestGetAudit_RoleFilter(t *testing.T) {
 	prev := audit.Global
@@ -381,15 +438,15 @@ func TestGetAudit_RoleFilter(t *testing.T) {
 
 	cfg := testCfg(t)
 	items := testItems()
-	h := Handler(cfg, items)
+	h := Handler(cfg, items, Options{})
 
 	// Generate audit entries for two different roles.
-	do(h, "/api/tour?role=maintainer")
-	do(h, "/api/search?role=maintainer&q=security")
-	do(h, "/api/tour?role=contractor")
+	doWithToken(h, "/api/tour", "tok-web-maintainer")
+	doWithToken(h, "/api/search?q=security", "tok-web-maintainer")
+	doWithToken(h, "/api/tour", "tok-web-contractor")
 
 	// Contractor's audit must contain only contractor entries.
-	rec := do(h, "/api/audit?role=contractor")
+	rec := doWithToken(h, "/api/audit", "tok-web-contractor")
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200", rec.Code)
 	}
@@ -400,8 +457,8 @@ func TestGetAudit_RoleFilter(t *testing.T) {
 
 	// Items that a contractor cannot see.
 	contractorForbidden := map[string]bool{
-		"file:SECURITY.md":      true,
-		"doc:growth/README.md":  true,
+		"file:SECURITY.md":     true,
+		"doc:growth/README.md": true,
 	}
 
 	for _, e := range entries {
@@ -427,7 +484,7 @@ func TestGetAudit_RoleFilter(t *testing.T) {
 // TestIndexHTML verifies that GET / returns the embedded HTML.
 func TestIndexHTML(t *testing.T) {
 	cfg := testCfg(t)
-	h := Handler(cfg, testItems())
+	h := Handler(cfg, testItems(), Options{})
 	rec := do(h, "/")
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200", rec.Code)
@@ -442,36 +499,6 @@ func TestIndexHTML(t *testing.T) {
 	}
 	if !contains(body, "Lawang Onboard") {
 		t.Error("expected 'Lawang Onboard' in the HTML response")
-	}
-}
-
-// TestGetSearch_MissingRole verifies 400 for missing role param.
-func TestGetSearch_MissingRole(t *testing.T) {
-	cfg := testCfg(t)
-	h := Handler(cfg, testItems())
-	rec := do(h, "/api/search?q=ingress")
-	if rec.Code != http.StatusBadRequest {
-		t.Errorf("status = %d, want 400", rec.Code)
-	}
-}
-
-// TestGetWithheld_MissingRole verifies 400 for missing role param.
-func TestGetWithheld_MissingRole(t *testing.T) {
-	cfg := testCfg(t)
-	h := Handler(cfg, testItems())
-	rec := do(h, "/api/withheld")
-	if rec.Code != http.StatusBadRequest {
-		t.Errorf("status = %d, want 400", rec.Code)
-	}
-}
-
-// TestGetAudit_MissingRole verifies 400 for missing role param.
-func TestGetAudit_MissingRole(t *testing.T) {
-	cfg := testCfg(t)
-	h := Handler(cfg, testItems())
-	rec := do(h, "/api/audit")
-	if rec.Code != http.StatusBadRequest {
-		t.Errorf("status = %d, want 400", rec.Code)
 	}
 }
 

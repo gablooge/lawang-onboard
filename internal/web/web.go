@@ -1,12 +1,19 @@
 // Package web provides the /api HTTP handlers for the demo page.
-// The role comes from the "role" query parameter; it is looked up in cfg.Roles.
-// No token ever reaches the browser.
+// By default the role for every /api/* endpoint (except /api/roles) is
+// resolved from an "Authorization: Bearer <token>" header, using the same
+// constant-time token lookup as /mcp.  Missing, unknown, or ambiguous token
+// returns 401 {"error":"unauthorized"}.
+//
+// When the server is started with -demo-roles (DemoRoles: true) the role may
+// instead come from the "role" query parameter; this is only for local
+// demos and must never be enabled in compose.yaml.
 package web
 
 import (
 	"embed"
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/gablooge/lawang-onboard/internal/audit"
 	"github.com/gablooge/lawang-onboard/internal/corpus"
@@ -17,17 +24,25 @@ import (
 //go:embed index.html
 var staticFiles embed.FS
 
+// Options controls optional server behaviour.
+type Options struct {
+	// DemoRoles, when true, allows the role to be specified via the "role"
+	// query parameter instead of an Authorization header.  Never set this in
+	// production.
+	DemoRoles bool
+}
+
 // Handler returns an http.Handler that serves:
 //
 //	GET /             -> index.html
-//	GET /api/roles    -> list of role names
-//	GET /api/tour     -> map_system result for ?role=
-//	GET /api/withheld -> withheld result for ?role=
-//	GET /api/search   -> search result for ?role= &q=
-//	GET /api/audit    -> audit ring entries for ?role=
+//	GET /api/roles    -> list of role names (always public)
+//	GET /api/tour     -> map_system result for the authenticated role
+//	GET /api/withheld -> withheld result for the authenticated role
+//	GET /api/search   -> search result for the authenticated role &q=
+//	GET /api/audit    -> audit ring entries for the authenticated role
 //
 // /mcp is NOT mounted here; the caller mounts it separately.
-func Handler(cfg *roles.Config, items []corpus.Item) http.Handler {
+func Handler(cfg *roles.Config, items []corpus.Item, opts Options) http.Handler {
 	mux := http.NewServeMux()
 
 	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -44,6 +59,7 @@ func Handler(cfg *roles.Config, items []corpus.Item) http.Handler {
 		_, _ = w.Write(data)
 	}))
 
+	// /api/roles is always public: only role names are returned, no item data.
 	mux.Handle("/api/roles", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		names := make([]string, 0, len(cfg.Roles))
 		for name := range cfg.Roles {
@@ -53,7 +69,7 @@ func Handler(cfg *roles.Config, items []corpus.Item) http.Handler {
 	}))
 
 	mux.Handle("/api/tour", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		role, ok := roleParam(cfg, w, r)
+		role, ok := resolveRole(cfg, w, r, opts)
 		if !ok {
 			return
 		}
@@ -67,7 +83,7 @@ func Handler(cfg *roles.Config, items []corpus.Item) http.Handler {
 	}))
 
 	mux.Handle("/api/withheld", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		role, ok := roleParam(cfg, w, r)
+		role, ok := resolveRole(cfg, w, r, opts)
 		if !ok {
 			return
 		}
@@ -77,7 +93,7 @@ func Handler(cfg *roles.Config, items []corpus.Item) http.Handler {
 	}))
 
 	mux.Handle("/api/search", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		role, ok := roleParam(cfg, w, r)
+		role, ok := resolveRole(cfg, w, r, opts)
 		if !ok {
 			return
 		}
@@ -92,7 +108,7 @@ func Handler(cfg *roles.Config, items []corpus.Item) http.Handler {
 	}))
 
 	mux.Handle("/api/audit", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		role, ok := roleParam(cfg, w, r)
+		role, ok := resolveRole(cfg, w, r, opts)
 		if !ok {
 			return
 		}
@@ -109,7 +125,36 @@ func Handler(cfg *roles.Config, items []corpus.Item) http.Handler {
 	return mux
 }
 
-// roleParam extracts and validates the "role" query parameter.
+// resolveRole determines the role for a request.
+// When opts.DemoRoles is true, the role may come from the "role" query
+// parameter (returns 400 for missing/unknown role name).
+// Otherwise (the default) the role must come from "Authorization: Bearer <token>"
+// (returns 401 for missing, unknown, or ambiguous token).
+func resolveRole(cfg *roles.Config, w http.ResponseWriter, r *http.Request, opts Options) (roles.Role, bool) {
+	if opts.DemoRoles {
+		return roleParam(cfg, w, r)
+	}
+	return bearerRole(cfg, w, r)
+}
+
+// bearerRole resolves the role from the Authorization header.
+// Writes 401 and returns false on any failure.
+func bearerRole(cfg *roles.Config, w http.ResponseWriter, r *http.Request) (roles.Role, bool) {
+	auth := r.Header.Get("Authorization")
+	if !strings.HasPrefix(auth, "Bearer ") {
+		writeUnauthorized(w)
+		return roles.Role{}, false
+	}
+	token := auth[len("Bearer "):]
+	role, ok := cfg.RoleForToken(token)
+	if !ok {
+		writeUnauthorized(w)
+		return roles.Role{}, false
+	}
+	return role, true
+}
+
+// roleParam extracts and validates the "role" query parameter (demo-roles mode).
 // On success it returns the Role and true.
 // On failure it writes a 400 and returns false.
 func roleParam(cfg *roles.Config, w http.ResponseWriter, r *http.Request) (roles.Role, bool) {
@@ -128,6 +173,13 @@ func roleParam(cfg *roles.Config, w http.ResponseWriter, r *http.Request) (roles
 		return roles.Role{}, false
 	}
 	return role, true
+}
+
+// writeUnauthorized sends a 401 with a JSON body.
+func writeUnauthorized(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusUnauthorized)
+	_ = json.NewEncoder(w).Encode(map[string]string{"error": "unauthorized"})
 }
 
 // writeJSON encodes v as JSON and writes it to w with Content-Type application/json.

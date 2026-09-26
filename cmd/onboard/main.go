@@ -33,11 +33,16 @@ func main() {
 	corpusDir := flag.String("corpus", "corpus", "corpus directory")
 	rolesFile := flag.String("roles", "roles.yaml", "roles YAML file")
 	webOnly := flag.Bool("web-only", false, "serve / and /api without /mcp")
+	demoRoles := flag.Bool("demo-roles", false, "allow ?role= param on /api/* instead of requiring a Bearer token (local demo only, never enable in production)")
 	flag.Parse()
 
 	cfg, err := roles.Load(*rolesFile)
 	if err != nil {
 		log.Fatalf("load roles: %v", err)
+	}
+
+	if *demoRoles {
+		log.Println("WARNING: -demo-roles is on; /api/* accepts ?role= without a token. Do not use in production.")
 	}
 
 	items, err := corpus.Load(*corpusDir, cfg)
@@ -49,7 +54,7 @@ func main() {
 		runStdio(cfg, items)
 		return
 	}
-	runHTTP(*addrFlag, *webOnly, cfg, items)
+	runHTTP(*addrFlag, *webOnly, *demoRoles, cfg, items)
 }
 
 // runStdio resolves the bearer token from ONBOARD_TOKEN once at startup and
@@ -75,9 +80,9 @@ func runStdio(cfg *roles.Config, items []corpus.Item) {
 
 // runHTTP starts the HTTP server. It always mounts the web UI (/ and /api).
 // Unless webOnly is true it also mounts /mcp with bearer-token auth.
-func runHTTP(addr string, webOnly bool, cfg *roles.Config, items []corpus.Item) {
+func runHTTP(addr string, webOnly bool, demoRoles bool, cfg *roles.Config, items []corpus.Item) {
 	// Mount the web UI on a fresh mux so we can return it for testing.
-	mux := buildMux(webOnly, cfg, items)
+	mux := buildMux(webOnly, demoRoles, cfg, items)
 
 	log.Printf("onboard: listening on %s", addr)
 	if err := http.ListenAndServe(addr, mux); err != nil {
@@ -87,11 +92,11 @@ func runHTTP(addr string, webOnly bool, cfg *roles.Config, items []corpus.Item) 
 
 // buildMux constructs the http.ServeMux for the server. It is a separate
 // function so that tests can call it without starting a listener.
-func buildMux(webOnly bool, cfg *roles.Config, items []corpus.Item) *http.ServeMux {
+func buildMux(webOnly bool, demoRoles bool, cfg *roles.Config, items []corpus.Item) *http.ServeMux {
 	mux := http.NewServeMux()
 
 	// Mount the web UI (/, /api/...).
-	webHandler := web.Handler(cfg, items)
+	webHandler := web.Handler(cfg, items, web.Options{DemoRoles: demoRoles})
 	mux.Handle("/", webHandler)
 	mux.Handle("/api/", webHandler)
 
@@ -186,7 +191,7 @@ func registerTools(srv *mcp.Server, cfg *roles.Config, role roles.Role, items []
 	// get
 	mcp.AddTool(srv, &mcp.Tool{
 		Name:        "get",
-		Description: "Retrieve a single corpus item by its ID. Returns {withheld:true} if the role cannot see it.",
+		Description: "Retrieve a single corpus item by its ID. Returns an empty result if the item is not found or not visible to the caller; both cases are indistinguishable.",
 	}, func(_ context.Context, _ *mcp.CallToolRequest, args getArgs) (*mcp.CallToolResult, tools.GetResult, error) {
 		result := tools.Get(role, items, args.ID)
 		return nil, result, nil

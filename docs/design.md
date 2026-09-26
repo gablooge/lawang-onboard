@@ -150,15 +150,16 @@ Every response appends a `withheld` field with the per-scope summary for that ca
 | `whoami` | bearer token | none (returns role name and scope list) |
 | `map_system` | bearer token | files, docs, ADRs (depth arg controls tree depth) |
 | `search` | bearer token | all items matching query terms |
-| `get` | bearer token | single item by ID; returns `{withheld:true}` if denied |
+| `get` | bearer token | single item by ID; hidden and missing IDs return an identical empty result |
 | `trace_feature` | bearer token | files, commits, PRs, ADRs linked to a term |
 | `why` | bearer token | commits, ADRs, review comments touching a path |
 | `setup_guide` | bearer token | README, Makefile, CI config (visible parts only) |
 | `starter_tasks` | bearer token | open issues whose paths are within the role's scopes |
 | `withheld` | bearer token | returns the session's accumulated withheld counts |
 
-The web `/api` handlers use the same filter. The role is taken from the server's config (a map
-of web session cookie or query param to role), never from the request body.
+The web `/api` handlers use the same filter. The role is resolved from the `Authorization: Bearer`
+header (same constant-time lookup as `/mcp`). The optional `-demo-roles` flag lets the role be
+specified via `?role=` query param for local demos; this flag must never be set in `compose.yaml`.
 
 ---
 
@@ -183,7 +184,7 @@ against the filter's output. Any divergence is a test failure.
 
 | Probe | Expected result |
 |---|---|
-| Contractor requests `doc:growth/README.md` via `get` | `{withheld: true, scopes: ["private:growth"]}` |
+| Contractor requests `doc:growth/README.md` via `get` | empty result (same as a missing ID) |
 | Contractor calls `search` for a word that appears only in `growth/` items | zero results |
 | Any caller calls `whoami` | role name and scope list only, no token value |
 | Maintainer sees `SECURITY.md` | allowed (scopes `["*"]`) |

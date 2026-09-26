@@ -7,22 +7,21 @@ import (
 )
 
 // GetResult is the response from the get tool.
-// If the item exists but the role cannot see it, Withheld is true and
-// WithheldScopes records which scopes caused the denial.
+// Item is set when the role can see the item.
+// When Item is nil the item was either not found or hidden; both cases are
+// indistinguishable to the caller (not found for your role).
+// WithheldCounts is always an empty map in this tool; use the withheld tool
+// for per-scope counts across the whole corpus.
 type GetResult struct {
-	// Item is the found item, or nil when denied or not found.
-	Item     *corpus.Item   `json:"item,omitempty"`
-	Withheld bool           `json:"withheld,omitempty"`
-	// WithheldCounts is the per-scope count of items withheld in this call (0 or 1).
+	// Item is the found item, or nil when not found or denied.
+	Item           *corpus.Item   `json:"item,omitempty"`
 	WithheldCounts map[string]int `json:"withheld_counts"`
 }
 
 // Get returns the single corpus item with the given ID if the role can see it.
-// If the item exists but is denied, it returns {withheld: true}.
-// If the item does not exist at all, it returns an empty result.
-// The withheld_counts field always reflects the scope(s) that caused any denial.
+// If the item is hidden or does not exist, both cases return the same empty
+// result so that the caller cannot distinguish between the two.
 func Get(role roles.Role, items []corpus.Item, id string) GetResult {
-	w := filter.Withheld{}
 	for _, item := range items {
 		if item.ID != id {
 			continue
@@ -33,11 +32,9 @@ func Get(role roles.Role, items []corpus.Item, id string) GetResult {
 				WithheldCounts: map[string]int{},
 			}
 		}
-		// Denied: record which scopes withheld it.
-		w.Record(role, item)
+		// Denied: return the same shape as not found.
 		return GetResult{
-			Withheld:       true,
-			WithheldCounts: w.Summary(),
+			WithheldCounts: map[string]int{},
 		}
 	}
 	// Not found.

@@ -46,6 +46,13 @@ main {
   display: flex;
   gap: 12px;
   align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.token-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
   margin-bottom: 24px;
   flex-wrap: wrap;
 }
@@ -172,10 +179,16 @@ button:hover { background: #e5e7eb; }
   <div class="page-center">
     <h1>Lawang Onboard</h1>
     <p>The same question, a different answer per role, enforced in the tool layer</p>
-    <p class="demo-note">Demo: pick a role to simulate it. The MCP endpoint used by IBM Bob requires a real bearer token; this page never sees one.</p>
+    <p class="demo-note">Paste a role token below to see that role's view. Tokens are kept in memory only and never stored.</p>
   </div>
 </header>
 <main>
+  <div class="token-row">
+    <label for="tokenInput">Token:</label>
+    <input id="tokenInput" type="password" placeholder="paste role token" style="width:300px">
+    <button id="loadBtn">Load</button>
+    <span id="tokenStatus" style="font-size:13px;color:#57606a;"></span>
+  </div>
   <div class="controls">
     <label for="roleSelect">Role:</label>
     <select id="roleSelect"><option value="">loading...</option></select>
@@ -225,9 +238,21 @@ button:hover { background: #e5e7eb; }
   var searchInput = document.getElementById('searchInput');
   var searchBtn = document.getElementById('searchBtn');
   var refreshBtn = document.getElementById('refreshBtn');
+  var tokenInput = document.getElementById('tokenInput');
+  var loadBtn = document.getElementById('loadBtn');
+  var tokenStatus = document.getElementById('tokenStatus');
+
+  // currentToken is kept only in this closure; never written to storage.
+  var currentToken = '';
 
   function api(path) {
-    return fetch(path).then(function (r) { return r.json(); });
+    var opts = currentToken ? { headers: { 'Authorization': 'Bearer ' + currentToken } } : {};
+    return fetch(path, opts).then(function (r) {
+      if (r.status === 401) {
+        return Promise.reject('unauthorized');
+      }
+      return r.json();
+    });
   }
 
   function esc(s) {
@@ -246,18 +271,45 @@ button:hover { background: #e5e7eb; }
     document.getElementById(id).textContent = String(n);
   }
 
-  // Load roles
-  api('/api/roles').then(function (names) {
+  // Load roles (always public).
+  fetch('/api/roles').then(function (r) { return r.json(); }).then(function (names) {
     names.sort();
     roleSelect.innerHTML = names.map(function (n) {
       return '<option value="' + esc(n) + '">' + esc(n) + '</option>';
     }).join('');
-    refreshAll();
   }).catch(function () {
     roleSelect.innerHTML = '<option value="">error</option>';
   });
 
   function currentRole() { return roleSelect.value; }
+
+  loadBtn.addEventListener('click', function () {
+    currentToken = tokenInput.value.trim();
+    tokenInput.value = '';
+    if (!currentToken) {
+      tokenStatus.textContent = '';
+      return;
+    }
+    // Validate token by calling /api/tour; if 401 clear it and show message.
+    var role = currentRole();
+    if (!role) { refreshAll(); return; }
+    api('/api/tour?role=' + encodeURIComponent(role)).then(function () {
+      tokenStatus.textContent = 'Token accepted.';
+      tokenStatus.style.color = '#1a7f37';
+      refreshAll();
+    }).catch(function (err) {
+      if (err === 'unauthorized') {
+        currentToken = '';
+        tokenStatus.textContent = 'Paste a role token to see that role\'s view.';
+        tokenStatus.style.color = '#cf222e';
+      }
+    });
+  });
+  tokenInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { loadBtn.click(); }
+  });
+
+  var MSG_UNAUTH = '<span class="error">Paste a role token to see that role\'s view.</span>';
 
   function loadTour(role) {
     api('/api/tour?role=' + encodeURIComponent(role)).then(function (data) {
@@ -269,7 +321,7 @@ button:hover { background: #e5e7eb; }
         return '<div class="item"><span class="item-id">' + esc(n.id) + '</span>'
           + '<span class="item-title">' + esc(n.path) + '</span></div>';
       }).join(''));
-    });
+    }).catch(function () { setEl('tourResults', MSG_UNAUTH); });
   }
 
   function loadWithheld(role) {
@@ -289,7 +341,7 @@ button:hover { background: #e5e7eb; }
       }).join('');
       rows += '<div class="total-row"><span>Total hidden items</span><span>' + esc(total) + '</span></div>';
       setEl('withheldResults', rows);
-    });
+    }).catch(function () { setEl('withheldResults', MSG_UNAUTH); });
   }
 
   function loadAudit(role) {
@@ -312,7 +364,7 @@ button:hover { background: #e5e7eb; }
           + (ids ? '<span class="audit-ids"> [' + esc(ids) + ']</span>' : '')
           + '</div>';
       }).join(''));
-    });
+    }).catch(function () { setEl('auditResults', MSG_UNAUTH); });
   }
 
   function loadSearch(role, q) {
@@ -331,7 +383,7 @@ button:hover { background: #e5e7eb; }
           + '<span class="item-id">' + esc(h.id) + '</span>'
           + '<span class="item-title">' + esc(h.title) + '</span></div>';
       }).join(''));
-    });
+    }).catch(function () { setEl('searchResults', MSG_UNAUTH); });
   }
 
   function refreshAll() {
