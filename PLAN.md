@@ -5,6 +5,69 @@ Items marked **(verify)** come from secondary sources and must be confirmed at k
 
 ---
 
+## 0. Pending (live list, updated Sat 26 Sep 08:15 WIB)
+
+Tools: **Bob** = IBM Bob IDE (the product and its evidence; Samsul has about 9.5 coins left, Ryan
+40). **Claude Code** = deploy and ops only (weekly limit at 93%, resets Sun). **Claude** = the
+claude.ai chat linked to this folder: docs, statements, ledger, benchmark write-up, slides.
+**Human** = no AI tool needed.
+
+### A. Keep the demo up (now)
+| # | Task | Who | Tool |
+|---|---|---|---|
+| A1 | Phone check on mobile data: page loads, `/robots.txt` is a 404 not a Cloudflare 502, tunnel shows Healthy | Samsul | Human |
+| A2 | Rotate the tunnel token (it was attached to a Claude Code prompt), then `docker compose up -d cloudflared` | Samsul | Human (Cloudflare dashboard) |
+| A3 | `git push`; close `.env`, `.env.tunnel`, `.bob/mcp.json` tabs before prompting any tool | Samsul | Human |
+| A4 | Keep the Mac awake while it hosts: `caffeinate -dimsu` in a spare terminal | Samsul | Human |
+
+### B. Product polish (Sat morning)
+| # | Task | Who | Tool |
+|---|---|---|---|
+| B1 | `/tour` as contractor after the depth fix; confirm it lists provider files; this is the video take | Samsul | Bob, Onboard mode (~0.3) |
+| B2 | Bob code review of the repo (its review feature), findings saved to `docs/review.md` | Ryan | Bob review (~3, Ryan's coins) |
+| B3 | Fix the review findings that matter (security first) | Samsul | Bob, Agent (~2) |
+| B4 | One `/trace webhook` and one `/first-week` run as contractor, for the video and slides | Ryan | Bob, Onboard (~0.5 each) |
+
+### C. Impact benchmark (Sat 10:00 to 16:00)
+| # | Task | Who | Tool |
+|---|---|---|---|
+| C1 | Send Ryan the contractor token by DM; he copies `.bob/mcp.remote.example.json` to `.bob/mcp.json` and pastes it | Samsul, Ryan | Human |
+| C2 | 10 onboarding questions (from `docs/submission/demo-questions.md` plus 5 more) in Onboard mode as contractor, stopwatch each | Ryan | Bob, Onboard (~5) |
+| C3 | Answer 3 of the same questions by hand from the repo (docs, git log, PRs), stopwatch each | Samsul | Human |
+| C4 | Grade every Onboard answer correct / partly / wrong | Samsul | Human |
+| C5 | Adversarial probes in Onboard (the 5 in demo-questions.md section 6) and note what came back | Ryan | Bob, Onboard (~1) |
+| C6 | `go test -v -run Leak ./internal/...` and paste the output (count of probes, 0 leaks) | Samsul | Human (terminal) |
+| C7 | Write `docs/benchmark.md` and the README impact table from C2 to C6 | Claude | Claude |
+
+### D. Documents (Sat afternoon)
+| # | Task | Who | Tool |
+|---|---|---|---|
+| D1 | README final: live demo, how it works, impact, how Bob is used, run it, screenshots | Claude | Claude |
+| D2 | `problem-solution.md` with real numbers (max 500 words) | Claude, Samsul reviews | Claude |
+| D3 | `bob-usage.md` with ledger totals and task numbers (max 500 words) | Claude, Samsul reviews | Claude |
+| D4 | `bob_sessions/` complete: every Bob task has a PNG and a ledger row, Ryan's included | Claude checks, each person screenshots | Bob + Claude |
+
+### E. Presentation (Sat evening to Sun 16:00)
+| # | Task | Who | Tool |
+|---|---|---|---|
+| E1 | Slide deck (8 slides, outline in `docs/submission/slides-outline.md`), export PDF for lablab | Claude drafts, Ryan reviews | Claude (Slides) |
+| E2 | Rehearse the video script (`docs/submission/video-script.md`) once | Ryan, Samsul | Human |
+| E3 | Record: screen capture of Bob + the demo page, Ryan's voice | Ryan | QuickTime or OBS |
+| E4 | Edit to 3:00 max, upload to YouTube unlisted | Ryan | iMovie or CapCut |
+
+### F. Submit (Sun 27 Sep, internal cutoff 19:00)
+| # | Task | Who | Tool |
+|---|---|---|---|
+| F1 | Move hosting to the VPS (same compose, then stop the Mac's cloudflared), or commit to keeping the Mac awake through judging | Samsul | Claude Code (after its limit resets) or Human |
+| F2 | `make secrets` clean, then make the repo public | Samsul | Human (`gh repo edit ... --visibility public`) |
+| F3 | lablab form from `docs/submission/form-answers.md`: links to repo, demo, video, slides, cover | Ryan | Human |
+| F4 | Feedback form, both of you, right after submitting (needed for the $100 reward) | Ryan, Samsul | Human |
+
+### G. Still unknown
+| # | Task | Who | Tool |
+|---|---|---|---|
+| G1 | Tracks and judging criteria from the kickoff: check the live page or Discord and tell Claude, so the pitch can be matched | Samsul | Human |
+
 ## 1. The event in one screen
 
 | | |
