@@ -13,5 +13,5 @@ COPY --from=build /out/onboard /app/onboard
 COPY --chmod=0555 corpus/*.jsonl corpus/manifest.json /app/corpus/
 COPY --chmod=0444 roles.yaml /app/roles.yaml
 USER nonroot
-EXPOSE 8080
-ENTRYPOINT ["/app/onboard","-addr",":8080","-corpus","/app/corpus","-roles","/app/roles.yaml"]
+EXPOSE 47312
+ENTRYPOINT ["/app/onboard","-addr",":47312","-corpus","/app/corpus","-roles","/app/roles.yaml"]

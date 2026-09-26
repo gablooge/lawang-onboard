@@ -5,7 +5,7 @@ defined in [`compose.yaml`](../compose.yaml):
 
 | Service | What it runs | Network |
 |---|---|---|
-| `onboard` | The Go server (`/`, `/api`, `/mcp`) in a distroless image, as nonroot, with a read-only root filesystem, no capabilities and `no-new-privileges`. | Private compose network. Also bound to `127.0.0.1:8080` on the host, for local testing only. |
+| `onboard` | The Go server (`/`, `/api`, `/mcp`) in a distroless image, as nonroot, with a read-only root filesystem, no capabilities and `no-new-privileges`. | Private compose network. Also bound to `127.0.0.1:47312` on the host, for local testing only. |
 | `cloudflared` | The Cloudflare Tunnel connector. It dials out to Cloudflare, so no inbound port is opened anywhere. | Private compose network, no ports. |
 
 ## The tunnel
@@ -15,7 +15,7 @@ local config file. It has one public hostname:
 
 | Public hostname | Service |
 |---|---|
-| `lawang-onboard.samsulhadi.com` | `http://onboard:8080` |
+| `lawang-onboard.samsulhadi.com` | `http://onboard:47312` |
 
 `onboard` is the compose service name, which resolves on the private network. Use a tunnel of
 its own for this demo, never one that already serves another app: every connector on a tunnel
@@ -49,9 +49,9 @@ make down   # stop and remove both containers
 Smoke test:
 
 ```sh
-curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:8080/          # 200
-curl -s http://127.0.0.1:8080/api/roles                                   # the three roles
-curl -s -o /dev/null -w "%{http_code}\n" -X POST http://127.0.0.1:8080/mcp # 401 without a token
+curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:47312/          # 200
+curl -s http://127.0.0.1:47312/api/roles                                   # the three roles
+curl -s -o /dev/null -w "%{http_code}\n" -X POST http://127.0.0.1:47312/mcp # 401 without a token
 ```
 
 Run the same three against `https://lawang-onboard.samsulhadi.com` once the tunnel shows healthy.

@@ -9,7 +9,7 @@ services:
     security_opt: ["no-new-privileges:true"]
     restart: unless-stopped
     ports:
-      - "127.0.0.1:8080:8080" # local testing only, never 0.0.0.0
+      - "127.0.0.1:47312:47312" # local testing only, never 0.0.0.0
     networks: [onboard]
 
   cloudflared:
