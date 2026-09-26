@@ -371,6 +371,59 @@ func TestGetAudit_OK(t *testing.T) {
 	}
 }
 
+// TestGetAudit_RoleFilter verifies that /api/audit returns only entries for the
+// requested role. A contractor must not see maintainer entries, and must not
+// receive any item ID that is outside the contractor's allowed scopes.
+func TestGetAudit_RoleFilter(t *testing.T) {
+	prev := audit.Global
+	audit.Global = &audit.Ring{}
+	t.Cleanup(func() { audit.Global = prev })
+
+	cfg := testCfg(t)
+	items := testItems()
+	h := Handler(cfg, items)
+
+	// Generate audit entries for two different roles.
+	do(h, "/api/tour?role=maintainer")
+	do(h, "/api/search?role=maintainer&q=security")
+	do(h, "/api/tour?role=contractor")
+
+	// Contractor's audit must contain only contractor entries.
+	rec := do(h, "/api/audit?role=contractor")
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200", rec.Code)
+	}
+	var entries []map[string]any
+	if err := json.NewDecoder(rec.Body).Decode(&entries); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+
+	// Items that a contractor cannot see.
+	contractorForbidden := map[string]bool{
+		"file:SECURITY.md":      true,
+		"doc:growth/README.md":  true,
+	}
+
+	for _, e := range entries {
+		role, _ := e["role"].(string)
+		if role != "contractor" {
+			t.Errorf("contractor audit contains entry for role %q", role)
+		}
+		ids, _ := e["returned_ids"].([]any)
+		for _, raw := range ids {
+			id, _ := raw.(string)
+			if contractorForbidden[id] {
+				t.Errorf("contractor audit contains forbidden item ID %q", id)
+			}
+		}
+	}
+
+	// Sanity: audit must contain at least one contractor entry.
+	if len(entries) == 0 {
+		t.Error("expected at least one contractor audit entry")
+	}
+}
+
 // TestIndexHTML verifies that GET / returns the embedded HTML.
 func TestIndexHTML(t *testing.T) {
 	cfg := testCfg(t)

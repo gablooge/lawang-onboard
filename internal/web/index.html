@@ -12,10 +12,15 @@ body {
   color: #1f2328;
   background: #ffffff;
 }
+.page-center {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
 header {
   background: #f7f8fa;
   border-bottom: 1px solid #e5e7eb;
-  padding: 16px 24px;
+  padding: 16px 0;
 }
 header h1 {
   font-size: 16px;
@@ -27,8 +32,13 @@ header p {
   color: #57606a;
   margin-top: 2px;
 }
+header .demo-note {
+  font-size: 13px;
+  color: #57606a;
+  margin-top: 4px;
+}
 main {
-  max-width: 900px;
+  max-width: 1100px;
   margin: 24px auto;
   padding: 0 24px;
 }
@@ -159,8 +169,11 @@ button:hover { background: #e5e7eb; }
 </head>
 <body>
 <header>
-  <h1>Lawang Onboard</h1>
-  <p>The same question, a different answer per role, enforced in the tool layer</p>
+  <div class="page-center">
+    <h1>Lawang Onboard</h1>
+    <p>The same question, a different answer per role, enforced in the tool layer</p>
+    <p class="demo-note">Demo: pick a role to simulate it. The MCP endpoint used by IBM Bob requires a real bearer token; this page never sees one.</p>
+  </div>
 </header>
 <main>
   <div class="controls">
@@ -293,7 +306,7 @@ button:hover { background: #e5e7eb; }
         var ids = (e.returned_ids || []).slice(0, 5).join(', ');
         if ((e.returned_ids || []).length > 5) ids += ', ...';
         return '<div class="audit-row">'
-          + '<span class="audit-time">' + esc((e.time || '').replace('T', ' ').replace('Z', '')) + '</span> '
+          + '<span class="audit-time">' + esc((e.time || '').replace('T', ' ').replace('Z', ' UTC')) + '</span> '
           + '<span class="audit-role">' + esc(e.role || '') + '</span> '
           + '<span class="audit-tool">' + esc(e.tool || '') + '</span>'
           + (ids ? '<span class="audit-ids"> [' + esc(ids) + ']</span>' : '')

@@ -92,13 +92,18 @@ func Handler(cfg *roles.Config, items []corpus.Item) http.Handler {
 	}))
 
 	mux.Handle("/api/audit", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// role param is required for consistency and to enforce unknown-role 400,
-		// but the audit log is not filtered by role (it is already role-name data).
-		_, ok := roleParam(cfg, w, r)
+		role, ok := roleParam(cfg, w, r)
 		if !ok {
 			return
 		}
-		writeJSON(w, audit.Global.Entries())
+		all := audit.Global.Entries()
+		filtered := make([]audit.Record, 0, len(all))
+		for _, e := range all {
+			if e.Role == role.Name {
+				filtered = append(filtered, e)
+			}
+		}
+		writeJSON(w, filtered)
 	}))
 
 	return mux
