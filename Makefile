@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := check
-.PHONY: check secrets corpus test vet hooks
+.PHONY: check secrets corpus test vet hooks up down logs ps
 
 # What CI runs.
 check: secrets vet test
@@ -21,3 +21,16 @@ test:
 # Installs the pre-commit hook that runs `make secrets`.
 hooks:
 	git config core.hooksPath .githooks
+
+# Runs the server and the Cloudflare Tunnel connector (see docs/deploy.md).
+up:
+	docker compose up -d --build
+
+down:
+	docker compose down
+
+logs:
+	docker compose logs --tail=100 -f
+
+ps:
+	docker compose ps

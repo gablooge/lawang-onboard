@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "lawang-onboard": {
+      "type": "streamable-http",
+      "url": "https://lawang-onboard.samsulhadi.com/mcp",
+      "headers": {
+        "Authorization": "Bearer <contractor token, ask Samsul>"
+      },
+      "alwaysAllow": [
+        "whoami",
+        "map_system",
+        "search",
+        "get",
+        "trace_feature",
+        "why",
+        "setup_guide",
+        "starter_tasks",
+        "withheld"
+      ]
+    }
+  }
+}

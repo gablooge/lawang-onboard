@@ -1,0 +1,9 @@
+.git
+.env
+.env.*
+.bob/
+bin/
+bob_sessions/
+docs/assets/
+corpus/raw/
+node_modules

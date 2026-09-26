@@ -43,6 +43,11 @@ corpus/*.jsonl  (files, docs, ADRs, commits, PR reviews, each stamped with scope
 
 TODO: diagram, tool list, demo link.
 
+- **Live demo:** https://lawang-onboard.samsulhadi.com
+- **Connect IBM Bob:** copy [`.bob/mcp.remote.example.json`](.bob/mcp.remote.example.json) to
+  `.bob/mcp.json` and add the contractor token (ask Samsul). Hosting details in
+  [docs/deploy.md](docs/deploy.md).
+
 ## Impact
 
 TODO: time to answer by hand vs with Onboard, correctness, leak suite result, Bobcoins per answer.

@@ -1,0 +1,24 @@
+# Lawang Onboard: the server plus a Cloudflare Tunnel connector on one private network.
+# Secrets come from .env (demo role tokens) and .env.tunnel (tunnel token); both are gitignored.
+services:
+  onboard:
+    build: .
+    env_file: .env
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:8080" # local testing only, never 0.0.0.0
+    networks: [onboard]
+
+  cloudflared:
+    image: cloudflare/cloudflared:2026.9.1
+    command: ["tunnel", "--no-autoupdate", "run"]
+    env_file: .env.tunnel
+    depends_on: [onboard]
+    restart: unless-stopped
+    networks: [onboard]
+
+networks:
+  onboard: {}
