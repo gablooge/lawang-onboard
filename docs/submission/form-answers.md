@@ -1,6 +1,6 @@
 # lablab submission form answers (draft)
 
-**Project name:** Lawang Onboard
+**Project name:** Lawang Onboard: Role-Aware Onboarding in IBM Bob
 
 **One line (under 100 characters):** An onboarding copilot in IBM Bob that only shows what your role may see.
 
