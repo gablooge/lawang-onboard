@@ -1,6 +1,7 @@
 # Bobcoin ledger
 
-Budget: 40 per person, 80 for the team. Stop starting new tasks at 80% spent; the rest is for the
+Budget: 40 per person, 80 for the team. Samsul's tasks are here; Ryan's tasks from 17 on are in
+[LEDGER-ryan.md](LEDGER-ryan.md), committed by Ryan. Stop starting new tasks at 80% spent; the rest is for the
 recorded demo.
 
 | Task | Time (WIB) | Who | Mode | Description | Coins | Running total | Screenshot |
