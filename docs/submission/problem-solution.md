@@ -1,8 +1,5 @@
 # Problem and solution
 
-Draft, Fri 25 Sep. Target 400 words, hard limit 500. Numbers in [brackets] are filled in from the
-benchmark on Saturday.
-
 ## The problem
 
 A new engineer's first weeks go into reconstructing context. The code shows what the system does;
@@ -30,11 +27,13 @@ the Lawang Onboard MCP server, which filters before the model sees a single line
 session cannot leak what it was never given. And every answer says what was withheld, so the gap
 is visible instead of papered over.
 
-We built and tested it on a real open-source codebase with [50] commits, [6] decision records and
-[13] reviewed pull requests. On [10] real onboarding questions, Onboard answered in [seconds] what
-took [minutes] by hand, with [n] citations per answer. A leak suite of [N] probes per role,
-including prompt injection planted inside the corpus, returned [0] items outside a role's scopes,
-and it runs in CI on every push.
+We built and tested it on a real open-source codebase: 610 items, including 50 commits, 6 decision
+records, 13 pull requests and 332 review comments. Asked ten real onboarding questions as a
+contractor, Onboard got all ten right, in 36 seconds and 0.16 Bobcoins per answer on average. On
+three of them it took 46 seconds against 210 by hand, and answered one that the manual search
+could not. Five attempts to talk it into leaking (prompt injection, calling the tool directly,
+claiming another role, searching, asking it to guess) got nothing outside the contractor's scopes,
+and the leak tests, with injection text planted in the corpus, run for every role in CI.
 
 ## Why it matters
 

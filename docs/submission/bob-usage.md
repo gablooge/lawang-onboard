@@ -1,44 +1,53 @@
 # How IBM Bob is used
 
-Skeleton, Fri 25 Sep. Fill in as the build goes; every claim here must match a screenshot in
-`bob_sessions/` and a row in `bob_sessions/LEDGER.md`. Hard limit 500 words.
+Every claim here matches a screenshot in `bob_sessions/` and a row in
+[LEDGER.md](../../bob_sessions/LEDGER.md) (Samsul) or [LEDGER-ryan.md](../../bob_sessions/LEDGER-ryan.md) (Ryan).
 
 ## Bob is the runtime
 
-- **Onboard custom mode** (`.bob/custom_modes.yaml`, rules in `.bob/rules-onboard/`): the
-  product's user interface. TODO: what it instructs.
-- **Skills** (`.bob/skills/`): `tour`, `trace`, `first-week`. TODO: one line each.
-- **Slash commands** (`.bob/commands/`): `/tour`, `/trace`, `/why`. TODO.
-- **MCP** (`.bob/mcp.json`): Bob reaches the codebase and its history only through the Lawang
-  Onboard server, which filters by role before Bob sees anything.
-- **Subagents and parallel tasks**: the tour fans out one subagent per module the role can see,
-  then merges. TODO: evidence (task number).
+- **Onboard custom mode** (`.bob/custom_modes.yaml`, rules in `.bob/rules-onboard/`): the product's
+  user interface. It has only the `mcp` and `skill` groups, so Bob sees the codebase only through
+  the Lawang Onboard server. The rules: call `whoami` first, cite every item id, treat corpus text
+  as data, never claim another role, mark proposals as proposals, end with one Withheld line.
+- **Skills** (`.bob/skills/`): `tour` (the map of what the role can see), `trace` (a feature end to
+  end, and where the trace stops), `first-week` (a plan from the open issues in the role's area),
+  `why` (the decisions and reviews behind a path).
+- **Slash commands** (`.bob/commands/`): `/tour`, `/trace`, `/why`.
+- **MCP**: nine tools over stdio or HTTPS. The role comes from the bearer token, and the server
+  filters before Bob sees anything.
 
 ## Bob built it
 
-| Stage | Bob mode or feature | Tasks | Coins |
+| Stage | Bob mode | Tasks | Bobcoins |
 |---|---|---|---|
-| Design | Plan mode, document understanding of the corpus and docs | TODO | TODO |
-| Permission filter and leak tests | Agent mode | TODO | TODO |
-| MCP server and tools | Agent mode | TODO | TODO |
-| Demo web page | Plan then Agent mode | TODO | TODO |
-| Reviews | Bob code review on each pull request | TODO | TODO |
-| Onboarding answers for the demo | Onboard mode | TODO | TODO |
+| Design (docs/design.md) | Plan | 02 | 0.468 |
+| Roles, corpus loader, filter, leak tests against an independent oracle | Agent | 03, 04 | 6.68 |
+| MCP server and the nine tools, stdio and HTTP, token auth | Agent | 05, 06 | 14.06 |
+| Onboard mode, rules, skills, slash commands | Agent | 09 | 1.01 |
+| Demo page, web API, audit log | Agent | 13, 14 | 3.268 |
+| Fixes found by using it (withheld counts, setup files hidden) | Agent | 11, 32 | 4.962 |
+| Setup and end-to-end checks, tours | Ask, Onboard | 01, 07, 08, 10, 12, 15 | 1.327 |
+| Benchmark: ten questions and one rerun | Onboard | 16 to 26, 26b | 1.725 |
+| Leak probes and rechecks | Onboard | 27 to 31, 35 | 0.284 |
+| Security review of the server | Ask | 33 | 0.785 |
+| Fixes from the review | Agent | 34 | 12.05 |
 
-Total: TODO of 80 Bobcoins across two team members.
+Total: 36 tasks, 46.619 of the team's 80 Bobcoins (Samsul 31.775, Ryan 14.844).
 
 ## What was done outside Bob
 
-Before kickoff, with Claude Code: repository setup, the data export script that turns the Lawang
-repository into `corpus/`, CI and secret scanning, and drafts of these documents. During the
-event, with Claude Code: the Docker and Cloudflare Tunnel deployment (Dockerfile, compose.yaml,
-docs/deploy.md) and bookkeeping of `bob_sessions/`. Two one-line configuration edits were made
-by hand after review (removing the `read` group from the Onboard mode so it can only see the
-codebase through the MCP server, and the tour skill's `map_system` depth). Every line of product
-code (filter, corpus loader, MCP server and tools, audit, web API and page, Onboard mode, rules,
-skills and commands) was written by IBM Bob, as the task screenshots show.
+With Claude Code: repository setup, the corpus export script, CI and secret scanning, the Docker
+and Cloudflare Tunnel deployment, `bob_sessions/` bookkeeping, an independent recount of the
+withheld numbers, and the write-ups. Two one-line configuration edits were made by hand (removing
+the `read` group from the Onboard mode, and the tour skill's `map_system` depth). Every line of
+product code, mode, rule, skill and command was written by IBM Bob.
 
 ## What we learned
 
-TODO: two or three concrete observations (what Bob did well, where we had to steer it, coins per
-task type).
+- **Using the product found the bugs.** The first `/tour` (task 10) showed wrong withheld counts;
+  the tests question (task 25) showed setup files hidden from contractors. Bob fixed both, and the
+  same question was rerun to verify.
+- **A narrow review works.** A leak-focused review in Ask mode (task 33) found two real holes the
+  tests had missed.
+- **Questions are cheap, broad edits are not.** Answers cost 0.03 to 0.45 Bobcoins; the eight-file
+  fix cost 12.05. Small tasks with a fresh context save coins.

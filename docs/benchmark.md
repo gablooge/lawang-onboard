@@ -99,7 +99,8 @@ which Bob then fixed (task 34):
 
 Checked afterwards against the hosted server: `/api/search?role=maintainer` without a token
 returns 401, and the contractor token with `?role=maintainer` still gets the contractor's counts
-(399).
+(399). A recheck in Bob (task 35) asked `get` for the hidden `doc:growth/README.md` and then
+for a made-up `doc:nope/missing.md`; both returned exactly `{"withheld_counts":{}}`.
 
 ## Tests
 
@@ -112,7 +113,7 @@ suite (`go test -race ./...`) passes too.
 | | Tasks | Bobcoins |
 |---|---|---|
 | Ten questions (including the rerun) | 10 | 1.624 |
-| Leak probes | 5 | 0.189 |
+| Leak probes and the recheck | 6 | 0.284 |
 | Review and fix | 2 | 12.835 |
 
 The fix in task 34 was the one expensive task (12.05 Bobcoins, over nine minutes, a long context).

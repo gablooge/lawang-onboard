@@ -15,7 +15,7 @@ server that filters every piece of context by role before the model sees it.
 **Tags:** IBM Bob, onboarding, developer productivity, MCP, permissions, access control, Go,
 AI agents
 
-**Technologies:** IBM Bob IDE (Onboard custom mode, skills, slash commands, MCP, subagents, code
-review), Go, Model Context Protocol (Go SDK), HTML/JS demo page. TODO: add watsonx if used.
+**Technologies:** IBM Bob IDE (Onboard custom mode, skills, slash commands, MCP, Plan, Agent and
+Ask modes), Go, Model Context Protocol (Go SDK), HTML/JS demo page, Docker, Cloudflare Tunnel.
 
-**Links:** repository https://github.com/gablooge/lawang-onboard (private until Sunday 18:00 WIB), demo URL TODO, video TODO, slides TODO.
+**Links:** repository https://github.com/gablooge/lawang-onboard (private until Sunday 18:00 WIB), demo https://lawang-onboard.samsulhadi.com, video TODO, slides TODO.
