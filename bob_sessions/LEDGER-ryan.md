@@ -8,3 +8,4 @@ from sending the prompt to the finished answer.
 |---|---|---|---|---|---|---|---|
 | 17 | Sat 10:03 | Ryan | Onboard | Benchmark Q1: /tour as contractor via the hosted server; correct modules, Withheld exact (406); 145 s | 0.450 | 0.482 | lawangonboard_task17_ryan_bench_tour_summary.png |
 | 17 | Sat 10:03 | Ryan | Onboard | Benchmark Q1: /tour as contractor via the hosted server; correct modules, Withheld exact (406); 145 s | 0.450 | 0.482 | lawangonboard_task17_ryan_bench_tour_summary.png |
+| 18 | Sat 10:12 | Ryan | Onboard | Benchmark Q2: "Why is there no message broker?" answered from docs/architecture.md and ADR 10 with quotes; public docs not blocked; Withheld 406; 55 s | 0.132 | 0.614 | lawangonboard_task18_ryan_bench_no_broker_summary.png |
