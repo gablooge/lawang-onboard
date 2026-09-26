@@ -18,4 +18,4 @@ AI agents
 **Technologies:** IBM Bob IDE (Onboard custom mode, skills, slash commands, MCP, Plan, Agent and
 Ask modes), Go, Model Context Protocol (Go SDK), HTML/JS demo page, Docker, Cloudflare Tunnel.
 
-**Links:** repository https://github.com/gablooge/lawang-onboard (private until Sunday 18:00 WIB), demo https://lawang-onboard.samsulhadi.com, video TODO, slides TODO.
+**Links:** repository https://github.com/gablooge/lawang-onboard (private until Sunday 18:00 WIB), demo https://lawang-onboard.samsulhadi.com, video TODO, slides https://claude.ai/artifact/XqEL6eoTdAAcx3RK6sxC5E (share it first; or export to PDF and upload).
