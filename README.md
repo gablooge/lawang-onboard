@@ -2,8 +2,8 @@
 
 ![Lawang Onboard](docs/assets/cover.png)
 
-**An onboarding copilot inside IBM Bob that explains a codebase to a new engineer, and only the
-parts they are allowed to see.**
+**Permission-aware AI onboarding.** An onboarding copilot inside IBM Bob that explains a codebase
+to a new engineer, and only the parts they are allowed to see.
 
 Built for the IBM Bob 2.0 Hackathon (lablab.ai, 25 to 27 September 2026) by team Lawang Onboard.
 
