@@ -1,10 +1,13 @@
 package main
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
+
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 
 	"github.com/gablooge/lawang-onboard/internal/roles"
 )
@@ -180,5 +183,88 @@ func TestToolsNeverReachWithBadAuth(t *testing.T) {
 				t.Errorf("[%s] inner handler should not have been called with bad token", tc.name)
 			}
 		})
+	}
+}
+
+// TestToolAnnotations verifies that every registered tool has the expected
+// read-only, non-destructive, idempotent, closed-world annotations.
+func TestToolAnnotations(t *testing.T) {
+	cfg := testSetup(t)
+	role, ok := cfg.RoleForToken(os.Getenv("TEST_ONBOARD_TOKEN_MAINTAINER"))
+	if !ok {
+		t.Fatal("could not resolve maintainer role")
+	}
+
+	ctx := context.Background()
+	srv := buildServer(cfg, role, nil)
+
+	ct, st := mcp.NewInMemoryTransports()
+	ss, err := srv.Connect(ctx, st, nil)
+	if err != nil {
+		t.Fatalf("server connect: %v", err)
+	}
+	defer ss.Close()
+
+	client := mcp.NewClient(&mcp.Implementation{Name: "test", Version: "0.0.0"}, nil)
+	cs, err := client.Connect(ctx, ct, nil)
+	if err != nil {
+		t.Fatalf("client connect: %v", err)
+	}
+	defer cs.Close()
+
+	res, err := cs.ListTools(ctx, nil)
+	if err != nil {
+		t.Fatalf("ListTools: %v", err)
+	}
+
+	wantNames := []string{
+		"whoami", "map_system", "search", "get",
+		"trace_feature", "why", "setup_guide", "starter_tasks", "withheld",
+	}
+
+	// Index returned tools by name for easy lookup.
+	byName := make(map[string]*mcp.Tool, len(res.Tools))
+	for _, tool := range res.Tools {
+		byName[tool.Name] = tool
+	}
+
+	// Verify every expected tool is present and has the right annotations.
+	for _, name := range wantNames {
+		tool, found := byName[name]
+		if !found {
+			t.Errorf("tool %q not found in ListTools result", name)
+			continue
+		}
+		ann := tool.Annotations
+		if ann == nil {
+			t.Errorf("tool %q: Annotations is nil", name)
+			continue
+		}
+		if !ann.ReadOnlyHint {
+			t.Errorf("tool %q: ReadOnlyHint = false, want true", name)
+		}
+		if ann.DestructiveHint == nil || *ann.DestructiveHint != false {
+			t.Errorf("tool %q: DestructiveHint = %v, want *false", name, ann.DestructiveHint)
+		}
+		if !ann.IdempotentHint {
+			t.Errorf("tool %q: IdempotentHint = false, want true", name)
+		}
+		if ann.OpenWorldHint == nil || *ann.OpenWorldHint != false {
+			t.Errorf("tool %q: OpenWorldHint = %v, want *false", name, ann.OpenWorldHint)
+		}
+	}
+
+	// Fail if the server advertises tools we did not account for.
+	for _, tool := range res.Tools {
+		found := false
+		for _, name := range wantNames {
+			if tool.Name == name {
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Errorf("unexpected tool %q in ListTools result; add it to wantNames", tool.Name)
+		}
 	}
 }

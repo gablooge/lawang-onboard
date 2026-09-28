@@ -177,12 +177,26 @@ type whyArgs struct {
 
 type starterTasksArgs struct{}
 
+// readOnlyAnnotations are the annotations applied to every tool: all tools
+// are read-only, non-destructive, idempotent, and operate on a closed local
+// corpus with no external side effects.
+var readOnlyAnnotations = &mcp.ToolAnnotations{
+	ReadOnlyHint:    true,
+	DestructiveHint: boolPtr(false),
+	IdempotentHint:  true,
+	OpenWorldHint:   boolPtr(false),
+}
+
+// boolPtr returns a pointer to b, for use with *bool annotation fields.
+func boolPtr(b bool) *bool { return &b }
+
 // registerTools adds all tools to srv bound to the given role and items.
 func registerTools(srv *mcp.Server, cfg *roles.Config, role roles.Role, items []corpus.Item) {
 	// whoami
 	mcp.AddTool(srv, &mcp.Tool{
 		Name:        "whoami",
 		Description: "Return the caller's role name and scope list.",
+		Annotations: readOnlyAnnotations,
 	}, func(_ context.Context, _ *mcp.CallToolRequest, _ struct{}) (*mcp.CallToolResult, tools.WhoamiResult, error) {
 		result := tools.Whoami(role)
 		return nil, result, nil
@@ -192,6 +206,7 @@ func registerTools(srv *mcp.Server, cfg *roles.Config, role roles.Role, items []
 	mcp.AddTool(srv, &mcp.Tool{
 		Name:        "get",
 		Description: "Retrieve a single corpus item by its ID. Returns an empty result if the item is not found or not visible to the caller; both cases are indistinguishable.",
+		Annotations: readOnlyAnnotations,
 	}, func(_ context.Context, _ *mcp.CallToolRequest, args getArgs) (*mcp.CallToolResult, tools.GetResult, error) {
 		result := tools.Get(role, items, args.ID)
 		return nil, result, nil
@@ -201,6 +216,7 @@ func registerTools(srv *mcp.Server, cfg *roles.Config, role roles.Role, items []
 	mcp.AddTool(srv, &mcp.Tool{
 		Name:        "search",
 		Description: "Search corpus items visible to the caller using BM25 ranking. Hidden items never affect results or scores.",
+		Annotations: readOnlyAnnotations,
 	}, func(_ context.Context, _ *mcp.CallToolRequest, args searchArgs) (*mcp.CallToolResult, tools.SearchResult, error) {
 		result := tools.Search(role, items, args.Query, args.MaxResults)
 		return nil, result, nil
@@ -210,6 +226,7 @@ func registerTools(srv *mcp.Server, cfg *roles.Config, role roles.Role, items []
 	mcp.AddTool(srv, &mcp.Tool{
 		Name:        "map_system",
 		Description: "List all files, docs, and ADRs visible to the caller, optionally limited to a path depth.",
+		Annotations: readOnlyAnnotations,
 	}, func(_ context.Context, _ *mcp.CallToolRequest, args mapSystemArgs) (*mcp.CallToolResult, tools.MapSystemResult, error) {
 		result := tools.MapSystem(role, items, args.Depth)
 		return nil, result, nil
@@ -219,6 +236,7 @@ func registerTools(srv *mcp.Server, cfg *roles.Config, role roles.Role, items []
 	mcp.AddTool(srv, &mcp.Tool{
 		Name:        "withheld",
 		Description: "Return the number of hidden items per missing scope plus a total of hidden items, across the whole corpus.",
+		Annotations: readOnlyAnnotations,
 	}, func(_ context.Context, _ *mcp.CallToolRequest, _ struct{}) (*mcp.CallToolResult, tools.WithheldResult, error) {
 		result := tools.Withheld(role, items)
 		return nil, result, nil
@@ -228,6 +246,7 @@ func registerTools(srv *mcp.Server, cfg *roles.Config, role roles.Role, items []
 	mcp.AddTool(srv, &mcp.Tool{
 		Name:        "trace_feature",
 		Description: "Find files, commits, reviews, and ADRs related to a term, grouped by kind.",
+		Annotations: readOnlyAnnotations,
 	}, func(_ context.Context, _ *mcp.CallToolRequest, args traceFeatureArgs) (*mcp.CallToolResult, tools.TraceFeatureResult, error) {
 		result := tools.TraceFeature(role, items, args.Term)
 		return nil, result, nil
@@ -237,6 +256,7 @@ func registerTools(srv *mcp.Server, cfg *roles.Config, role roles.Role, items []
 	mcp.AddTool(srv, &mcp.Tool{
 		Name:        "why",
 		Description: "For a repository path, return commits that touched it, review comments on it, and ADRs or docs that mention it.",
+		Annotations: readOnlyAnnotations,
 	}, func(_ context.Context, _ *mcp.CallToolRequest, args whyArgs) (*mcp.CallToolResult, tools.WhyResult, error) {
 		result := tools.Why(role, items, args.Path)
 		return nil, result, nil
@@ -246,6 +266,7 @@ func registerTools(srv *mcp.Server, cfg *roles.Config, role roles.Role, items []
 	mcp.AddTool(srv, &mcp.Tool{
 		Name:        "setup_guide",
 		Description: "Return the visible parts of README.md, Makefile, and .github/workflows files.",
+		Annotations: readOnlyAnnotations,
 	}, func(_ context.Context, _ *mcp.CallToolRequest, _ struct{}) (*mcp.CallToolResult, tools.SetupGuideResult, error) {
 		result := tools.SetupGuide(role, items)
 		return nil, result, nil
@@ -255,6 +276,7 @@ func registerTools(srv *mcp.Server, cfg *roles.Config, role roles.Role, items []
 	mcp.AddTool(srv, &mcp.Tool{
 		Name:        "starter_tasks",
 		Description: "Return open issues whose label areas are within the caller's scopes.",
+		Annotations: readOnlyAnnotations,
 	}, func(_ context.Context, _ *mcp.CallToolRequest, _ starterTasksArgs) (*mcp.CallToolResult, tools.StarterTasksResult, error) {
 		result := tools.StarterTasks(role, items, cfg.LabelAreas)
 		return nil, result, nil
