@@ -2,6 +2,8 @@
 
 ![Lawang Onboard](docs/assets/cover.png)
 
+[![M8ven Score](https://m8ven.ai/badge/mcp/gablooge/lawang-onboard)](https://m8ven.ai/mcp/gablooge/lawang-onboard)
+
 **Permission-aware AI onboarding.** An onboarding copilot inside IBM Bob that explains a codebase
 to a new engineer, and only the parts they are allowed to see.
 
@@ -120,9 +122,9 @@ every task has a screenshot in [`bob_sessions/`](bob_sessions/) and a row in the
 ([Samsul](bob_sessions/LEDGER.md), [Ryan](bob_sessions/LEDGER-ryan.md)). Details, and what was
 done outside Bob: [docs/submission/bob-usage.md](docs/submission/bob-usage.md).
 
-## Data
+## Data and privacy
 
-See [DATA_SOURCES.md](DATA_SOURCES.md). The demo corpus is the team's own open-source repository,
+See [DATA_SOURCES.md](DATA_SOURCES.md) and [PRIVACY.md](PRIVACY.md). The demo corpus is the team's own open-source repository,
 [gablooge/lawang](https://github.com/gablooge/lawang); no client, confidential, personal or social
 media data is used. The roles are synthetic.
 
