@@ -2,7 +2,7 @@
 
 ![Lawang Onboard](docs/assets/cover.png)
 
-[![M8ven Score](https://m8ven.ai/badge/mcp/gablooge/lawang-onboard)](https://m8ven.ai/mcp/gablooge/lawang-onboard)
+[![M8ven Score](https://m8ven.ai/badge/mcp/gablooge-lawang-onboard-1ol0jo?v=a1cf63ba5dd77154dd1db71bed4fd329)](https://m8ven.ai/mcp/gablooge-lawang-onboard-1ol0jo)
 
 **Permission-aware AI onboarding.** An onboarding copilot inside IBM Bob that explains a codebase
 to a new engineer, and only the parts they are allowed to see.
