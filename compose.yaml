@@ -11,6 +11,10 @@ services:
     ports:
       - "127.0.0.1:47312:47312" # local testing only, never 0.0.0.0
     networks: [onboard]
+    mem_limit: 512m
+    logging: &logging
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
 
   cloudflared:
     image: cloudflare/cloudflared:2026.9.1
@@ -19,6 +23,8 @@ services:
     depends_on: [onboard]
     restart: unless-stopped
     networks: [onboard]
+    mem_limit: 256m
+    logging: *logging
 
 networks:
   onboard: {}
