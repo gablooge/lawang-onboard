@@ -1,0 +1,34 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.gablooge/lawang-onboard",
+  "title": "Lawang Onboard",
+  "description": "Permission-aware onboarding MCP server: answers about a codebase, filtered by the caller's role.",
+  "version": "0.1.0",
+  "repository": {
+    "url": "https://github.com/gablooge/lawang-onboard",
+    "source": "github"
+  },
+  "websiteUrl": "https://lawang-onboard.samsulhadi.com",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://lawang-onboard.samsulhadi.com/mcp",
+      "headers": [
+        {
+          "name": "Authorization",
+          "description": "Bearer token for your role (maintainer, employee or contractor). Ask the server operator for one.",
+          "value": "Bearer {onboard_token}",
+          "isRequired": true,
+          "isSecret": true,
+          "variables": {
+            "onboard_token": {
+              "description": "Role token issued by the server operator",
+              "isRequired": true,
+              "isSecret": true
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
