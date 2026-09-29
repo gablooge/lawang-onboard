@@ -22,6 +22,15 @@ header {
   border-bottom: 1px solid #e5e7eb;
   padding: 16px 0;
 }
+header .page-center {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+header .header-text { flex: 1 1 auto; }
+header .header-link { flex: 0 0 auto; font-size: 13px; }
 header h1 {
   font-size: 16px;
   font-weight: 600;
@@ -177,9 +186,14 @@ button:hover { background: #e5e7eb; }
 <body>
 <header>
   <div class="page-center">
-    <h1>Lawang Onboard</h1>
-    <p>The same question, a different answer per role, enforced in the tool layer</p>
-    <p class="demo-note">Paste a role token below to see that role's view. Tokens are kept in memory only and never stored.</p>
+    <div class="header-text">
+      <h1>Lawang Onboard</h1>
+      <p>The same question, a different answer per role, enforced in the tool layer</p>
+      <p class="demo-note">Paste a role token below to see that role's view. Tokens are kept in memory only and never stored.</p>
+    </div>
+    <div class="header-link">
+      <a href="https://github.com/gablooge/lawang-onboard" target="_blank" rel="noopener" style="color:#3b82d4;text-decoration:none;">Source on GitHub</a>
+    </div>
   </div>
 </header>
 <main>
@@ -232,6 +246,9 @@ button:hover { background: #e5e7eb; }
     </div>
   </div>
 </main>
+<footer style="border-top:1px solid #e5e7eb;padding:12px 0;margin-top:24px;font-size:12px;color:#57606a;text-align:center;">
+  Lawang Onboard, IBM Bob 2.0 Hackathon &middot; <a href="https://github.com/gablooge/lawang-onboard/blob/main/PRIVACY.md" target="_blank" rel="noopener" style="color:#57606a;">Privacy</a>
+</footer>
 <script>
 (function () {
   var roleSelect = document.getElementById('roleSelect');
