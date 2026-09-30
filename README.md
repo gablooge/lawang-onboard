@@ -112,6 +112,25 @@ make test                                       # go test -race -count=1 ./...
 
 Hosting (Docker and a Cloudflare Tunnel, `make up`): [docs/deploy.md](docs/deploy.md).
 
+Or run the published image over stdio, no Go needed. Pick any secret, give it to one role, and use
+the same value as `ONBOARD_TOKEN`; that role decides what you see:
+
+```json
+{
+  "mcpServers": {
+    "lawang-onboard": {
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "-e", "ONBOARD_TOKEN", "-e", "ONBOARD_TOKEN_CONTRACTOR",
+               "ghcr.io/gablooge/lawang-onboard:0.1.1", "-stdio"],
+      "env": { "ONBOARD_TOKEN": "pick-a-secret", "ONBOARD_TOKEN_CONTRACTOR": "pick-a-secret" }
+    }
+  }
+}
+```
+
+The server is also listed in the [MCP Registry](https://registry.modelcontextprotocol.io) as
+`io.github.gablooge/lawang-onboard`.
+
 ## How IBM Bob is used
 
 IBM Bob is both the product's runtime and the tool that built it. The Onboard mode, its rules,

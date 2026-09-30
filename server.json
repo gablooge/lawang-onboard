@@ -3,12 +3,55 @@
   "name": "io.github.gablooge/lawang-onboard",
   "title": "Lawang Onboard",
   "description": "Permission-aware onboarding MCP server: answers about a codebase, filtered by the caller's role.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "repository": {
     "url": "https://github.com/gablooge/lawang-onboard",
     "source": "github"
   },
   "websiteUrl": "https://lawang-onboard.samsulhadi.com",
+  "packages": [
+    {
+      "registryType": "oci",
+      "identifier": "ghcr.io/gablooge/lawang-onboard:0.1.1",
+      "transport": {
+        "type": "stdio"
+      },
+      "runtimeHint": "docker",
+      "packageArguments": [
+        {
+          "type": "positional",
+          "value": "-stdio",
+          "description": "Run over stdio instead of HTTP"
+        }
+      ],
+      "environmentVariables": [
+        {
+          "name": "ONBOARD_TOKEN",
+          "description": "The token this client uses. Set it to the same value as one of the role tokens below; that role decides what you see.",
+          "isRequired": true,
+          "isSecret": true
+        },
+        {
+          "name": "ONBOARD_TOKEN_CONTRACTOR",
+          "description": "Token for the contractor role (any secret you choose)",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "ONBOARD_TOKEN_EMPLOYEE",
+          "description": "Token for the employee role (any secret you choose)",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "ONBOARD_TOKEN_MAINTAINER",
+          "description": "Token for the maintainer role (any secret you choose)",
+          "isRequired": false,
+          "isSecret": true
+        }
+      ]
+    }
+  ],
   "remotes": [
     {
       "type": "streamable-http",
