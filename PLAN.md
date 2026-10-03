@@ -5,6 +5,107 @@ Items marked **(verify)** come from secondary sources and must be confirmed at k
 
 ---
 
+## After the hackathon (written Sat 3 Oct 2026)
+
+The event ended Sun 27 Sep. Sections 0 to 14 are the record of it and are no longer kept current.
+This section is the only live part of the file.
+
+### Where it stands
+
+- Submitted. Judging result: **(fill in when known)**. Until it is known, no change to what the
+  server does; documentation and planning only.
+- Landed since the deadline, outside any plan: `PRIVACY.md`, read-only annotations on all nine
+  tools, memory limits and log rotation in `compose.yaml`, the GitHub link on the demo page, the
+  image `ghcr.io/gablooge/lawang-onboard:0.1.1`, `server.json` and the MCP Registry listing
+  `io.github.gablooge/lawang-onboard`.
+- M8ven, read Fri 1 Oct: grade B, 75 of 100, verified publisher, "no credential exfiltration, no
+  sensitive file access, no obfuscation". The page says the grade follows adoption, and the
+  repository has 0 stars and 0 forks. Features will not move it; users will.
+- The corpus is Lawang at `baa08cf` (B06). Lawang's `main` is past B07 (merged 2 Oct).
+- The open fix below (`RoleForToken` duplicate check) is done: `TestRoleForTokenDeniesOnMultipleMatches`
+  and `TestDuplicateTokenEnvRefused` in `internal/roles`.
+
+### Decisions
+
+| When | Decision | Why |
+|---|---|---|
+| Sat 3 Oct | Onboard stays a separate project from Lawang. The two join at Lawang's record format (P4), never by merging code. | Lawang's claim is that it stops at the sink; a query layer inside it would blur that. Different licenses (MIT here, Apache 2.0 there). |
+| Sat 3 Oct | Work on Onboard is capped at P1 and P2, a few days, then back to Lawang. P3 is a small CI job. P4 waits for Lawang B09. | Lawang is seven backlog items behind its own dates, and it is the project the paid options depend on. |
+| Sat 3 Oct | Nothing in this section changes `docs/submission/`, `bob_sessions/` or the ledgers. | They describe the hackathon and must stay true to it. |
+
+### Two gates before any product change
+
+- **G1 Judging.** Check the lablab page. Until the result is out, the server's behaviour stays as
+  submitted.
+- **G2 Who writes the code.** Standing rule 1 in `CLAUDE.md` (Bob builds the product, Claude Code
+  does not write product code) existed for the hackathon evidence. Samsul decides whether it is
+  lifted for post-hackathon work, or whether Bob keeps building on a personal account. Record the
+  answer in the decisions table above; rule 1 is edited only on that answer.
+
+### P1 Any repository
+
+The product is a demo until someone can point it at their own code. What is Lawang-specific
+today: `roles.yaml` (Lawang's path globs), `make corpus` (hard-coded `../lawang gablooge/lawang`),
+the image (bakes Lawang's corpus and roles), and the README (no "your own repository" section).
+`scripts/export_corpus.py` already takes any repository path and GitHub name.
+
+- [ ] `make corpus REPO=<path> GITHUB=<owner/name>` with the Lawang values as defaults, and an
+      export that works with no GitHub remote (files and commits only, GitHub kinds skipped with a
+      line saying so).
+- [ ] `roles.example.yaml`: a starter with generic scopes (`docs:public`, one `path:` scope per
+      top-level directory, `private:` for globs the adopter names), one comment per line saying what
+      the line does. `roles.yaml` stays as the Lawang demo.
+- [ ] Image: document mounting your own corpus and roles
+      (`-v ./corpus:/app/corpus -v ./roles.yaml:/app/roles.yaml`). The baked Lawang corpus stays as
+      the default so the registry listing keeps working out of the box.
+- [ ] README section "Use it on your own repository": three steps, export, roles, connect.
+
+**Done when:** a public repository that is not Lawang, cloned fresh, yields a corpus; a role whose
+scopes cover two of its directories gets a `/tour` that shows those two and a Withheld line for the
+rest; nothing in the path needs the Lawang name.
+
+### P2 Any MCP client
+
+The skills and slash commands live in `.bob/` and the README leads with Bob. The server exposes
+tools only, no MCP prompts, so a Claude Code or Cursor user gets the tools and none of the
+guidance that makes the tour a tour.
+
+- [ ] Serve `tour`, `trace`, `why` and `first-week` as MCP prompts, with the same text as
+      `.bob/skills/*/SKILL.md` (one source, generated or embedded, not two copies).
+- [ ] Setup snippets in the README for Claude Code (`claude mcp add`), Cursor and VS Code, next to
+      the Bob one; stdio through the image and HTTPS through the hosted server.
+- [ ] Say plainly in the README what the Onboard mode does for free in Bob and other clients do
+      not: the filter holds only while the server is the model's only view of the code. A client
+      that also reads the working tree sees everything, and no setting of ours can stop it.
+
+**Done when:** Claude Code with the stdio image, Bob not installed, runs the `tour` prompt as
+contractor and its Withheld line matches the Bob run (task 36).
+
+### P3 Fresh corpus
+
+- [ ] A workflow on `workflow_dispatch` and a weekly schedule that re-exports from
+      `gablooge/lawang` `main`, commits `corpus/` when the manifest's `source_commit` changed, and
+      lets `image.yml` rebuild. Scrub report printed in the job log; a non-empty report of new
+      replacements fails the job for a human look.
+
+**Done when:** `corpus/manifest.json` names a Lawang commit no more than a week behind `main`.
+
+### P4 Read Lawang records (not before Lawang B09)
+
+- [ ] Load `lawang.record/v1` JSONL as a corpus kind, scope taken from `visibility.scope`.
+- [ ] Later, when Lawang B24 lands: role-to-scopes from Lawang's membership sync instead of
+      `roles.yaml`, so a person's view follows the source's own permissions.
+
+This is the demo Lawang's growth issue #41 asks for: two people, one question, different answers,
+with no third-party account needed.
+
+### Not doing
+
+More tools (nine is enough), demo page polish, Granite on the web page, a second-repository demo
+as a feature (P1 covers it), and anything whose purpose is the M8ven score.
+
+---
+
 ## 0. Pending (live list, updated Sat 26 Sep 08:15 WIB)
 
 Tools: **Bob** = IBM Bob IDE (the product and its evidence; Samsul has about 9.5 coins left, Ryan
@@ -620,9 +721,10 @@ Record on Sunday 16:00. Two takes, pick the better one. Upload unlisted.
 
 ## Open fixes (carry into the next Bob task)
 
-- [ ] `RoleForToken`: the duplicate check compares variable names, not values. If two roles' env
+- [x] `RoleForToken`: the duplicate check compares variable names, not values. If two roles' env
       vars hold the same token value, the first match in map order wins. Fix: count matches and deny
-      when more than one role matches (fail closed), with a test.
+      when more than one role matches (fail closed), with a test. (Done; see the tests named in
+      "After the hackathon".)
 
 ## 14. Decision log
 
