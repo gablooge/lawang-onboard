@@ -17,9 +17,14 @@ apikey*.json
 # Raw exports before scrubbing
 /corpus/raw/
 
+# Your own repository's corpus and roles (see README, "Use it on your own repository")
+/local/
+
 # Node, editors, OS
 node_modules/
 .idea/
 .vscode/
 .DS_Store
 /onboard
+/.*-raw/
+__pycache__/

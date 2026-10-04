@@ -131,6 +131,81 @@ the same value as `ONBOARD_TOKEN`; that role decides what you see:
 The server is also listed in the [MCP Registry](https://registry.modelcontextprotocol.io) as
 `io.github.gablooge/lawang-onboard`.
 
+## Use it on your own repository
+
+The demo answers about Lawang, but nothing in the server is specific to it. A corpus and a roles
+file are all it reads. The export needs Python 3 and git, the server needs Go 1.25 or Docker.
+Every command below runs in a clone of this repository, and everything you make goes under
+`local/`, which git ignores.
+
+1. **Export.** Point it at a local clone of your repository:
+
+   ```sh
+   make corpus REPO=../myrepo GITHUB=me/myrepo OUT=local/corpus
+   ```
+
+   This writes files, docs and commits from the clone, and pull requests, reviews and issues from
+   GitHub (public repositories need no token; set `GITHUB_TOKEN` for a private one or a large
+   one). `GITHUB=` with nothing after it skips GitHub and makes no network call. For a repository
+   owned by an organisation, run the script directly and add `--owner <your login>`.
+
+   **What the export removes, and what it does not.** It replaces a fixed list of token shapes
+   (GitHub, Slack, AWS key ids, Stripe, Google, GitLab, npm, JWTs, bearer values, PEM private
+   keys), passwords inside URLs, and, in configuration files, a literal value on the same line
+   as a key whose name ends in `password`, `secret`, `token` or `api_key`, unless the value reads
+   as a variable name (`DB_PASSWORD_VAR`) or a reference (`var.db_password`). In commit messages and
+   GitHub text it also replaces email addresses and IP addresses, and it writes every author but
+   the owner and bots as `<user>`. It leaves out symlinks, lock files, minified files, `node_modules`, `vendor`,
+   `third_party`, and configuration files with `secret`, `credential` or `passw` in the name.
+   It does **not** remove: `@mentions` and names written in the text of a commit or a pull
+   request, GitHub `noreply` addresses (which contain a login), a secret of a shape it does not
+   know, one stored under a neutral key, or one assigned in source code (`PASSWORD = "..."` in a
+   `.py` file). So it is a net and not a guarantee. The counts are
+   printed and kept in `local/corpus/manifest.json`; read the corpus before you share it. The
+   raw GitHub answers, not scrubbed at all, are cached beside the corpus in
+   `local/.corpus-raw/`, which ignores itself in git and is never mounted or served.
+
+2. **Say who sees what.**
+
+   ```sh
+   cp roles.example.yaml local/roles.yaml
+   ```
+
+   Edit the globs to match your tree. Every line is commented. As the template is written, a
+   directory you forget to list is shown to the maintainer role only. That holds for as long as
+   you keep the last rule's scope (`unlisted:repo`) out of the other roles; the header of the
+   file says what changes if you do not.
+
+3. **Run.** Each role needs a token, in the variable its `token_env` names. Without them the
+   page loads and every call answers 401:
+
+   ```sh
+   cp .env.example .env    # then set ONBOARD_TOKEN_MAINTAINER, _EMPLOYEE and _CONTRACTOR
+   ```
+
+   With Go:
+
+   ```sh
+   set -a; . ./.env; set +a
+   go run ./cmd/onboard -addr :47312 -corpus local/corpus -roles local/roles.yaml
+   ```
+
+   Or with the published image, mounting both over the demo's:
+
+   ```sh
+   docker run --rm -p 47312:47312 --env-file .env \
+     -v "$PWD/local/corpus:/app/corpus:ro" -v "$PWD/local/roles.yaml:/app/roles.yaml:ro" \
+     ghcr.io/gablooge/lawang-onboard:0.1.1
+   ```
+
+   The MCP endpoint is `http://localhost:47312/mcp` and the page is at `/`. For stdio, take the
+   JSON block under "Run it locally" and add the two `-v` mounts to its `args`, with absolute
+   paths (there is no shell there to expand `$PWD`); it has no `-p`.
+
+What you get depends on what the repository has. The tour, search, `get`, `trace_feature` and
+`why` work on any export. `setup_guide` reads the README, the Makefile and
+`.github/workflows/`. `starter_tasks` needs GitHub issues and a `label_areas` entry.
+
 ## How IBM Bob is used
 
 IBM Bob is both the product's runtime and the tool that built it. The Onboard mode, its rules,

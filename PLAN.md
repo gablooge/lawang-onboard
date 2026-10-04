@@ -49,20 +49,61 @@ today: `roles.yaml` (Lawang's path globs), `make corpus` (hard-coded `../lawang 
 the image (bakes Lawang's corpus and roles), and the README (no "your own repository" section).
 `scripts/export_corpus.py` already takes any repository path and GitHub name.
 
-- [ ] `make corpus REPO=<path> GITHUB=<owner/name>` with the Lawang values as defaults, and an
+- [x] `make corpus REPO=<path> GITHUB=<owner/name>` with the Lawang values as defaults, and an
       export that works with no GitHub remote (files and commits only, GitHub kinds skipped with a
-      line saying so).
-- [ ] `roles.example.yaml`: a starter with generic scopes (`docs:public`, one `path:` scope per
+      line saying so). Also: `OUT=`, an `--owner` flag in place of the hard-coded login, more
+      source file types than Go's, and commit authors written as `<user>` when a repository has
+      more than one.
+- [x] `roles.example.yaml`: a starter with generic scopes (`docs:public`, one `path:` scope per
       top-level directory, `private:` for globs the adopter names), one comment per line saying what
       the line does. `roles.yaml` stays as the Lawang demo.
-- [ ] Image: document mounting your own corpus and roles
+- [x] Image: document mounting your own corpus and roles
       (`-v ./corpus:/app/corpus -v ./roles.yaml:/app/roles.yaml`). The baked Lawang corpus stays as
       the default so the registry listing keeps working out of the box.
-- [ ] README section "Use it on your own repository": three steps, export, roles, connect.
+- [x] README section "Use it on your own repository": three steps, export, roles, connect.
 
 **Done when:** a public repository that is not Lawang, cloned fresh, yields a corpus; a role whose
 scopes cover two of its directories gets a `/tour` that shows those two and a Withheld line for the
 rest; nothing in the path needs the Lawang name.
+
+Checked Sun 4 Oct on a fresh clone of `gablooge/lawang-onboard` (165 items), with the template's
+two areas set to `internal/tools` and `internal/web` and the contractor role given both: the
+contractor's tour lists the docs, the setup files and those two directories, 116 items are
+withheld under the catch-all scope, and a search for a name that lives in `internal/roles`
+returns only the visible file that mentions it. Same counts from `go run` and from the published
+`0.1.1` image with the corpus and roles mounted. None of this touched the server.
+
+After review round 1 (PR #1): paths are read from git NUL-separated, because a path with a space
+or a non-ASCII byte was mangled, matched no private glob and fell to the catch-all, which is a
+leak and not a cosmetic bug. The template's catch-all scope is now `unlisted:repo`, held by the
+maintainer only, so a forgotten directory is hidden and not shown to `path:*`. The export skips
+symlinks, lock files, minified files and vendored trees, knows more token shapes, and refuses to
+overwrite an earlier GitHub export when no repository is named. The raw GitHub cache moved out
+of the corpus directory. **The next Lawang re-export will differ from the committed corpus in
+two ways, both intended:** passwords inside URLs become `<password>` (25 places, all test
+fixtures), and the `hash` field of a commit is now its own hash (49 of 50 rows carried the
+previous commit's file list in front of it).
+
+After review round 2: the credential rule for configuration files matched across line ends and
+replaced the next line's key (it turned `secrets:` then `runs-on:` in this repository's own CI
+file into `<secret>`), so it now allows only spaces and tabs around the separator, wants the
+credential word at the END of the key, and keeps a value that reads as a variable name or a
+dotted reference. The cache's `.gitignore` is written inside the cache and never over an
+existing file (it had replaced the parent directory's). Three rules that cost quadratic time on
+one long line are bounded: the URL password rule, and two that were there before, the email and
+the hostname rule; a 200 kB line of `a.a.a.` now takes under a tenth of a second where it did
+not finish. A control character in a file name no longer cuts a commit's path list short.
+
+After review round 3, the last of three: the list of values the credential rule keeps was too
+wide (any upper-case value, any dotted value), so an upper-case hex key or a `SG.x.y` key under
+`api_key:` passed where round 2's script had replaced it. A kept name now needs an underscore
+and a kept reference has no digits outside an index. The email rule lost its anchor, which had
+made it miss an address glued to a long run. **These two changes were made after the third
+review and have not been reviewed.** Left for a later item, from the same review: a credential
+word followed by a suffix (`SECRET_KEY_BASE`, `DB_PASSWORD_PROD`), a key in a yaml list item or
+in one-line JSON, `passphrase` and `db_pass`, and `--rescrub-github` on an empty directory
+ending in a traceback. Seen on the way, for P2 or later since it is server code: on a repository
+that is not Lawang the tour's nodes carry no one-line summaries.
 
 ### P2 Any MCP client
 
