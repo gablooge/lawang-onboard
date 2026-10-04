@@ -82,7 +82,17 @@ overwrite an earlier GitHub export when no repository is named. The raw GitHub c
 of the corpus directory. **The next Lawang re-export will differ from the committed corpus in
 two ways, both intended:** passwords inside URLs become `<password>` (25 places, all test
 fixtures), and the `hash` field of a commit is now its own hash (49 of 50 rows carried the
-previous commit's file list in front of it). Seen on the way, for P2 or later since it is server code: on a repository
+previous commit's file list in front of it).
+
+After review round 2: the credential rule for configuration files matched across line ends and
+replaced the next line's key (it turned `secrets:` then `runs-on:` in this repository's own CI
+file into `<secret>`), so it now allows only spaces and tabs around the separator, wants the
+credential word at the END of the key, and keeps a value that reads as a variable name or a
+dotted reference. The cache's `.gitignore` is written inside the cache and never over an
+existing file (it had replaced the parent directory's). Three rules that cost quadratic time on
+one long line are bounded: the URL password rule, and two that were there before, the email and
+the hostname rule; a 200 kB line of `a.a.a.` now takes under a tenth of a second where it did
+not finish. A control character in a file name no longer cuts a commit's path list short. Seen on the way, for P2 or later since it is server code: on a repository
 that is not Lawang the tour's nodes carry no one-line summaries.
 
 ### P2 Any MCP client

@@ -41,7 +41,8 @@ SKIP_SUFFIXES = (".min.js", ".min.css")
 # Configuration formats, where a credential is a plain value and not a fixture in a test. These
 # get the assignment rule below, and a file of these types whose name says it holds secrets is
 # left out altogether.
-CONFIG_EXT = {".ini", ".cfg", ".tf", ".toml", ".yaml", ".yml", ".json", ".txt"}
+CONFIG_EXT = {".ini", ".cfg", ".tf", ".toml", ".yaml", ".yml", ".json"}
+SECRET_NAME_EXT = CONFIG_EXT | {".txt"}
 SECRET_NAME = re.compile(r"secret|credential|passw", re.I)
 MAX_FILE_BYTES = 200_000
 
@@ -52,13 +53,15 @@ ALWAYS_RULES = [
     ("local_path", re.compile(r"(?:/private)?/tmp/claude-\d+/[^\s\"'`)]+"), "<local-path>"),
     ("local_path", re.compile(r"/(?:Users|home)/[A-Za-z0-9._-]+(?:/[^\s\"'`)]*)?"), "<local-path>"),
     ("local_path", re.compile(r"-Users-[A-Za-z0-9._-]+"), "<local-path>"),
-    ("personal_hostname", re.compile(r"\b[A-Za-z0-9.-]*samsulhadi\.com\b", re.I), "<tunnel-hostname>"),
+    # Anchored to the start of a run and bounded, like the email rule below: left open, both
+    # cost quadratic time on one long line of "a.a.a.", and a 200 kB file did not finish.
+    ("personal_hostname", re.compile(r"(?<![A-Za-z0-9.-])[A-Za-z0-9.-]{0,200}samsulhadi\.com\b", re.I), "<tunnel-hostname>"),
     ("personal_name", re.compile(r"samsulhadi", re.I), "<owner>"),
 ]
 # Rules for free text only (commit messages, PRs, reviews, issues). Source files keep their
 # fixtures (RFC 5737 addresses, example.* emails), which are deliberately fake.
 TEXT_RULES = [
-    ("email", re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"), "<email>"),
+    ("email", re.compile(r"(?<![A-Za-z0-9._%+-])[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9.-]{1,255}\.[A-Za-z]{2,}"), "<email>"),
     ("ipv4", re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b"), "<ip>"),
     ("github_token", re.compile(r"\b(?:ghp|gho|ghu|ghs|ghr|github_pat)_[A-Za-z0-9_]{20,}\b"), "<token>"),
     ("slack_token", re.compile(r"\bxox[abprs]-[A-Za-z0-9-]{10,}\b"), "<token>"),
@@ -71,7 +74,8 @@ TEXT_RULES = [
     ("npm_token", re.compile(r"\bnpm_[A-Za-z0-9]{36}\b"), "<token>"),
     ("jwt", re.compile(r"\beyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}"), "<token>"),
     ("slack_webhook", re.compile(r"https://hooks\.slack\.com/services/[A-Za-z0-9/_-]+"), "<webhook-url>"),
-    ("url_password", re.compile(r"(\b[a-z][a-z0-9+.-]*://[^\s:/@\"'`]+):[^\s@/\"'`]+@"), r"\1:<password>@"),
+    # The scheme is bounded: unbounded, a long run of "a.a.a." costs quadratic time.
+    ("url_password", re.compile(r"(\b[a-z][a-z0-9+.-]{1,20}://[^\s:/@\"'`]{0,200}):[^\s@/\"'`]{1,500}@"), r"\1:<password>@"),
     ("private_key", re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----"), "<private-key>"),
 ]
 # Example addresses in docs and tests are not personal data; keep them readable.
@@ -85,14 +89,23 @@ TOKEN_RULE_NAMES = {
     "stripe_key", "google_key", "gitlab_token", "npm_token", "jwt", "slack_webhook", "url_password",
 }
 
-# For configuration files only: a key whose name says it is a credential, with a literal value.
-# A value that begins with $, < or { is a reference or a placeholder and is kept. This does not
-# see a secret under a neutral key (Terraform's `default = "..."`), and nothing here can.
-CONFIG_RULE = (
-    "config_secret",
-    re.compile(r"""(?im)^(\s*["']?[\w.-]*(?:password|passwd|secret|token|api[_-]?key|access[_-]?key)[\w.-]*["']?\s*[:=]\s*)(["']?)[^\s"'$<{][^\s"']{7,}\2"""),
-    r"\1\2<secret>\2",
-)
+# For configuration files only: a key whose name ENDS in a credential word (so token_env,
+# tokenUrl, secretName and the plural "secrets" are not keys of this kind), with a literal value
+# on the same line. Only spaces and tabs are allowed around the separator: with \s the rule ran
+# over the line end and replaced the next line's key. A value that begins with $, < or { is a
+# reference or a placeholder and is kept, and so is one that reads as a variable name or a dotted
+# reference (CONFIG_KEEP). This does not see a secret under a neutral key (Terraform's
+# `default = "..."`), and nothing here can.
+CONFIG_RULE = re.compile(
+    r"""(?im)^([ \t]*["']?[\w.-]*(?:password|passwd|secret|token|(?:secret|private|api|access|auth)[_-]?key)["']?[ \t]*[:=][ \t]*)(["']?)([^\s"'$<{][^\s"']{7,})\2""")
+CONFIG_KEEP = re.compile(r"^(?:[A-Z][A-Z0-9_]+|[A-Za-z_]\w*(?:\.[\w\[\]]+)+)$")
+
+
+def _config_sub(m):
+    if CONFIG_KEEP.match(m.group(3)):
+        return m.group(0)
+    report["config_secret"] += 1
+    return m.group(1) + m.group(2) + "<secret>" + m.group(2)
 
 
 def scrub(text, source_file=False, config_file=False):
@@ -100,7 +113,7 @@ def scrub(text, source_file=False, config_file=False):
         return text
     rules = ALWAYS_RULES + [r for r in TEXT_RULES if not source_file or r[0] in TOKEN_RULE_NAMES]
     if config_file:
-        rules = rules + [CONFIG_RULE]
+        text = CONFIG_RULE.sub(_config_sub, text)
     for name, rx, repl in rules:
         def sub(m, name=name, repl=repl):
             if name == "email" and EMAIL_ALLOW.search(m.group(0)):
@@ -158,11 +171,12 @@ def export_files(repo):
         ext = os.path.splitext(base)[1]
         if path.startswith(SKIP_PREFIXES) or base in SKIP_FILES or base.endswith(SKIP_SUFFIXES):
             continue
-        if SKIP_DIRS.intersection(path.split("/")[:-1]):
-            continue
         if not is_text_path(path):
             continue
-        if ext in CONFIG_EXT and SECRET_NAME.search(base):
+        if SKIP_DIRS.intersection(path.split("/")[:-1]):
+            report["skipped_third_party_dir"] += 1
+            continue
+        if ext in SECRET_NAME_EXT and SECRET_NAME.search(base):
             report["skipped_secret_named_file"] += 1
             continue
         full = os.path.join(repo, path)
@@ -213,13 +227,21 @@ def export_commits(repo):
             "text": scrub(body.strip()),
             "paths": [],
         })
-    # Paths in a second walk, NUL-separated: "\x01<hash>\0\n<path>\0<path>\0" per commit.
-    by_id = {i["id"]: i for i in items}
-    for chunk in git(repo, "log", "--no-merges", "--name-only", "-z", "--format=%x01%h").split("\x01"):
-        names = chunk.split("\0")
-        cur = by_id.get(f"commit:{names[0]}")
-        if cur is not None:
-            cur["paths"] = [n.lstrip("\n") for n in names[1:] if n.strip("\n")]
+    # Paths in a second walk, NUL-separated: "<mark><hash>\0\n<path>\0<path>\0" per commit.
+    # Split on NUL first, so a control character inside a name stays inside the name, and take
+    # exactly the one newline git puts before a commit's first path.
+    mark = "\x01\x01commit:"
+    by_hash = {i["hash"]: i for i in items}
+    cur, first = None, False
+    for field in git(repo, "log", "--no-merges", "--name-only", "-z", f"--format={mark}%H").split("\0"):
+        if field.lstrip("\n").startswith(mark):
+            cur, first = by_hash.get(field.lstrip("\n")[len(mark):]), True
+            continue
+        if first and field.startswith("\n"):
+            field = field[1:]
+        first = False
+        if field and cur is not None:
+            cur["paths"].append(field)
     authors = set(git(repo, "log", "--format=%ae").split())
     if len(authors) > 1 or OWNER_LOGIN is None:
         # A commit carries an email, not a login, and an email is not exported. With several
@@ -250,9 +272,12 @@ class GitHub:
         self.cache_dir = cache_dir
         if cache_dir:
             os.makedirs(cache_dir, exist_ok=True)
-            # The cache is what GitHub sent, before scrubbing. It ignores itself, wherever it is.
-            with open(os.path.join(os.path.dirname(cache_dir), ".gitignore"), "w", encoding="utf-8") as fh:
-                fh.write("*\n")
+            # The cache is what GitHub sent, before scrubbing. It ignores itself, wherever it is:
+            # the file goes INSIDE the cache and never replaces one that is already there.
+            ignore = os.path.join(cache_dir, ".gitignore")
+            if not os.path.exists(ignore):
+                with open(ignore, "w", encoding="utf-8") as fh:
+                    fh.write("*\n")
         self.base = f"https://api.github.com/repos/{repo}"
         self.token = os.environ.get("GITHUB_TOKEN")
         self.calls = 0
@@ -410,7 +435,6 @@ def main():
     ap.add_argument("--rescrub-github", action="store_true",
                     help="do not call GitHub; re-apply scrubbing to existing prs/reviews/issues.jsonl")
     a = ap.parse_args()
-    os.makedirs(a.out, exist_ok=True)
     out_abs = os.path.abspath(a.out)
     a.cache = a.cache or os.path.join(os.path.dirname(out_abs), "." + os.path.basename(out_abs) + "-raw", "github")
     if a.rescrub_github and not a.github_repo:
@@ -421,6 +445,7 @@ def main():
             if os.path.exists(path) and os.path.getsize(path) > 0:
                 raise SystemExit(f"{path} holds an earlier GitHub export and no <owner/repo> was given; "
                                  "name the repository, or choose another --out")
+    os.makedirs(a.out, exist_ok=True)
     global OWNER_LOGIN
     OWNER_LOGIN = a.owner or (a.github_repo.split("/", 1)[0] if a.github_repo else None)
 

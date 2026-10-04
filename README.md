@@ -151,14 +151,15 @@ Every command below runs in a clone of this repository, and everything you make 
 
    **What the export removes, and what it does not.** It replaces a fixed list of token shapes
    (GitHub, Slack, AWS key ids, Stripe, Google, GitLab, npm, JWTs, bearer values, PEM private
-   keys), passwords inside URLs, and, in configuration files, a literal value under a key named
-   like `password`, `secret`, `token` or `api_key`. In commit messages and GitHub text it also
-   replaces email addresses and IP addresses, and it writes every author but the owner as
-   `<user>`. It leaves out symlinks, lock files, minified files, `node_modules`, `vendor`,
+   keys), passwords inside URLs, and, in configuration files, a literal value on the same line
+   as a key whose name ends in `password`, `secret`, `token` or `api_key`. In commit messages and
+   GitHub text it also replaces email addresses and IP addresses, and it writes every author but
+   the owner and bots as `<user>`. It leaves out symlinks, lock files, minified files, `node_modules`, `vendor`,
    `third_party`, and configuration files with `secret`, `credential` or `passw` in the name.
    It does **not** remove: `@mentions` and names written in the text of a commit or a pull
    request, GitHub `noreply` addresses (which contain a login), a secret of a shape it does not
-   know, or one stored under a neutral key. So it is a net and not a guarantee. The counts are
+   know, one stored under a neutral key, or one assigned in source code (`PASSWORD = "..."` in a
+   `.py` file). So it is a net and not a guarantee. The counts are
    printed and kept in `local/corpus/manifest.json`; read the corpus before you share it. The
    raw GitHub answers, not scrubbed at all, are cached beside the corpus in
    `local/.corpus-raw/`, which ignores itself in git and is never mounted or served.
@@ -197,7 +198,8 @@ Every command below runs in a clone of this repository, and everything you make 
    ```
 
    The MCP endpoint is `http://localhost:47312/mcp` and the page is at `/`. For stdio, take the
-   JSON block under "Run it locally" and add the two `-v` mounts to its `args`; it has no `-p`.
+   JSON block under "Run it locally" and add the two `-v` mounts to its `args`, with absolute
+   paths (there is no shell there to expand `$PWD`); it has no `-p`.
 
 What you get depends on what the repository has. The tour, search, `get`, `trace_feature` and
 `why` work on any export. `setup_guide` reads the README, the Makefile and
