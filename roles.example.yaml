@@ -5,8 +5,12 @@
 # roles.yaml, next to this file, is the Lawang demo and a fuller example.
 #
 # The rule: every corpus item gets scopes from the sections below. A role sees an item only if
-# it holds ALL of the item's scopes. An item that gets no scope is denied to everyone, so a path
-# you forget is hidden, never shown.
+# it holds ALL of the item's scopes. A path that no glob matches is denied to everyone.
+#
+# What happens to a directory you forget to list is decided by the LAST glob, the catch-all. As
+# written here it gives such a path the scope "unlisted:repo", which only the maintainer holds,
+# so a forgotten directory is hidden from everyone else. If you change that scope to one a wider
+# role holds ("path:repo" with "path:*", say), every forgotten directory is shown to that role.
 
 scopes:
   # Path glob -> scope. FIRST MATCH WINS, so private and narrow globs go above broad ones.
@@ -28,7 +32,7 @@ scopes:
     scope: "docs:public"
 
   # How to build, test and run. The setup_guide tool reads the README, the Makefile and the
-  # CI workflows, so a role without this scope gets no setup guidance.
+  # CI workflows; a role without this scope gets the README alone (it is docs:public above).
   - glob: "Makefile"
     scope: "setup:public"
   - glob: ".github/**"
@@ -41,13 +45,15 @@ scopes:
   - glob: "src/web/**"
     scope: "path:src/web"
 
-  # Everything else. Keep this line last. Without it, unlisted paths are denied to every role,
-  # the maintainer included.
+  # Everything not listed above. Keep this line last. Only the maintainer ("*") holds this
+  # scope, so list what the other roles should see; do not widen this line to save typing.
+  # Without the line, unlisted paths are denied to every role, the maintainer included.
   - glob: "**"
-    scope: "path:repo"
+    scope: "unlisted:repo"
 
 # A commit or a pull request touches several paths and gets the scope of each one. Someone who
-# may read src/api but not src/web does not see a commit that changed both.
+# may read src/api but not src/web does not see a commit that changed both, and nobody but the
+# maintainer sees a commit that also touched an unlisted path.
 
 # Issues and their comments have no paths. They get a scope from a label if one is listed here,
 # otherwise from their kind. Delete all three sections below if you exported without GitHub.

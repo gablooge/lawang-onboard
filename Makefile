@@ -15,7 +15,7 @@ REPO ?= ../lawang
 GITHUB ?= gablooge/lawang
 OUT ?= corpus
 corpus:
-	./scripts/export_corpus.py $(REPO) $(GITHUB) --out $(OUT)
+	./scripts/export_corpus.py "$(REPO)" $(GITHUB) --out "$(OUT)"
 
 vet:
 	@if [ -f go.mod ]; then go vet ./...; else echo "no go.mod yet"; fi

@@ -11,3 +11,4 @@ bob_sessions/*.png
 corpus/*.jsonl
 !.env.example
 local/
+.*-raw/

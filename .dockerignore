@@ -8,3 +8,4 @@ docs/assets/
 corpus/raw/
 node_modules
 local/
+.*-raw/

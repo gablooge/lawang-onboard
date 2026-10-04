@@ -53,7 +53,7 @@ the image (bakes Lawang's corpus and roles), and the README (no "your own reposi
       export that works with no GitHub remote (files and commits only, GitHub kinds skipped with a
       line saying so). Also: `OUT=`, an `--owner` flag in place of the hard-coded login, more
       source file types than Go's, and commit authors written as `<user>` when a repository has
-      more than one. Re-exporting Lawang at `baa08cf` gives byte-identical JSONL.
+      more than one.
 - [x] `roles.example.yaml`: a starter with generic scopes (`docs:public`, one `path:` scope per
       top-level directory, `private:` for globs the adopter names), one comment per line saying what
       the line does. `roles.yaml` stays as the Lawang demo.
@@ -67,11 +67,22 @@ scopes cover two of its directories gets a `/tour` that shows those two and a Wi
 rest; nothing in the path needs the Lawang name.
 
 Checked Sun 4 Oct on a fresh clone of `gablooge/lawang-onboard` (165 items), with the template's
-two areas set to `internal/tools` and `internal/web`: the contractor's tour lists the docs, the
-setup files and those two directories, 116 items are withheld under `path:repo`, and a search for
-a name that lives in `internal/roles` returns only the visible file that mentions it. Same counts
-from `go run` and from the published `0.1.1` image with the corpus and roles mounted. None of
-this touched the server. Seen on the way, for P2 or later since it is server code: on a repository
+two areas set to `internal/tools` and `internal/web` and the contractor role given both: the
+contractor's tour lists the docs, the setup files and those two directories, 116 items are
+withheld under the catch-all scope, and a search for a name that lives in `internal/roles`
+returns only the visible file that mentions it. Same counts from `go run` and from the published
+`0.1.1` image with the corpus and roles mounted. None of this touched the server.
+
+After review round 1 (PR #1): paths are read from git NUL-separated, because a path with a space
+or a non-ASCII byte was mangled, matched no private glob and fell to the catch-all, which is a
+leak and not a cosmetic bug. The template's catch-all scope is now `unlisted:repo`, held by the
+maintainer only, so a forgotten directory is hidden and not shown to `path:*`. The export skips
+symlinks, lock files, minified files and vendored trees, knows more token shapes, and refuses to
+overwrite an earlier GitHub export when no repository is named. The raw GitHub cache moved out
+of the corpus directory. **The next Lawang re-export will differ from the committed corpus in
+two ways, both intended:** passwords inside URLs become `<password>` (25 places, all test
+fixtures), and the `hash` field of a commit is now its own hash (49 of 50 rows carried the
+previous commit's file list in front of it). Seen on the way, for P2 or later since it is server code: on a repository
 that is not Lawang the tour's nodes carry no one-line summaries.
 
 ### P2 Any MCP client

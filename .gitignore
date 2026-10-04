@@ -26,3 +26,4 @@ node_modules/
 .vscode/
 .DS_Store
 /onboard
+/.*-raw/
