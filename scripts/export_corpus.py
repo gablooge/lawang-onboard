@@ -53,15 +53,16 @@ ALWAYS_RULES = [
     ("local_path", re.compile(r"(?:/private)?/tmp/claude-\d+/[^\s\"'`)]+"), "<local-path>"),
     ("local_path", re.compile(r"/(?:Users|home)/[A-Za-z0-9._-]+(?:/[^\s\"'`)]*)?"), "<local-path>"),
     ("local_path", re.compile(r"-Users-[A-Za-z0-9._-]+"), "<local-path>"),
-    # Anchored to the start of a run and bounded, like the email rule below: left open, both
-    # cost quadratic time on one long line of "a.a.a.", and a 200 kB file did not finish.
+    # Anchored to the start of a run and bounded, and the email rule below is bounded too: left
+    # open, both cost quadratic time on one long line of "a.a.a.", and a 200 kB file did not
+    # finish. The email rule has no anchor, so an address glued to a long run is still found.
     ("personal_hostname", re.compile(r"(?<![A-Za-z0-9.-])[A-Za-z0-9.-]{0,200}samsulhadi\.com\b", re.I), "<tunnel-hostname>"),
     ("personal_name", re.compile(r"samsulhadi", re.I), "<owner>"),
 ]
 # Rules for free text only (commit messages, PRs, reviews, issues). Source files keep their
 # fixtures (RFC 5737 addresses, example.* emails), which are deliberately fake.
 TEXT_RULES = [
-    ("email", re.compile(r"(?<![A-Za-z0-9._%+-])[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9.-]{1,255}\.[A-Za-z]{2,}"), "<email>"),
+    ("email", re.compile(r"[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9.-]{1,255}\.[A-Za-z]{2,}"), "<email>"),
     ("ipv4", re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b"), "<ip>"),
     ("github_token", re.compile(r"\b(?:ghp|gho|ghu|ghs|ghr|github_pat)_[A-Za-z0-9_]{20,}\b"), "<token>"),
     ("slack_token", re.compile(r"\bxox[abprs]-[A-Za-z0-9-]{10,}\b"), "<token>"),
@@ -98,7 +99,10 @@ TOKEN_RULE_NAMES = {
 # `default = "..."`), and nothing here can.
 CONFIG_RULE = re.compile(
     r"""(?im)^([ \t]*["']?[\w.-]*(?:password|passwd|secret|token|(?:secret|private|api|access|auth)[_-]?key)["']?[ \t]*[:=][ \t]*)(["']?)([^\s"'$<{][^\s"']{7,})\2""")
-CONFIG_KEEP = re.compile(r"^(?:[A-Z][A-Z0-9_]+|[A-Za-z_]\w*(?:\.[\w\[\]]+)+)$")
+# Kept: an upper-case name WITH an underscore (ONBOARD_TOKEN_MAINTAINER; upper-case hex and
+# base32 have none), and a dotted reference whose segments hold no digit outside an index
+# (var.db_password, module.db.outputs[0]; SG.abc123.def456 and first.last2024 are replaced).
+CONFIG_KEEP = re.compile(r"^(?:[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+|[A-Za-z_]+(?:\[\d+\])?(?:\.[A-Za-z_]+(?:\[\d+\])?)+)$")
 
 
 def _config_sub(m):

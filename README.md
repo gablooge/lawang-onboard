@@ -152,7 +152,8 @@ Every command below runs in a clone of this repository, and everything you make 
    **What the export removes, and what it does not.** It replaces a fixed list of token shapes
    (GitHub, Slack, AWS key ids, Stripe, Google, GitLab, npm, JWTs, bearer values, PEM private
    keys), passwords inside URLs, and, in configuration files, a literal value on the same line
-   as a key whose name ends in `password`, `secret`, `token` or `api_key`. In commit messages and
+   as a key whose name ends in `password`, `secret`, `token` or `api_key`, unless the value reads
+   as a variable name (`DB_PASSWORD_VAR`) or a reference (`var.db_password`). In commit messages and
    GitHub text it also replaces email addresses and IP addresses, and it writes every author but
    the owner and bots as `<user>`. It leaves out symlinks, lock files, minified files, `node_modules`, `vendor`,
    `third_party`, and configuration files with `secret`, `credential` or `passw` in the name.

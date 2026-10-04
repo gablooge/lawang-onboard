@@ -92,7 +92,17 @@ dotted reference. The cache's `.gitignore` is written inside the cache and never
 existing file (it had replaced the parent directory's). Three rules that cost quadratic time on
 one long line are bounded: the URL password rule, and two that were there before, the email and
 the hostname rule; a 200 kB line of `a.a.a.` now takes under a tenth of a second where it did
-not finish. A control character in a file name no longer cuts a commit's path list short. Seen on the way, for P2 or later since it is server code: on a repository
+not finish. A control character in a file name no longer cuts a commit's path list short.
+
+After review round 3, the last of three: the list of values the credential rule keeps was too
+wide (any upper-case value, any dotted value), so an upper-case hex key or a `SG.x.y` key under
+`api_key:` passed where round 2's script had replaced it. A kept name now needs an underscore
+and a kept reference has no digits outside an index. The email rule lost its anchor, which had
+made it miss an address glued to a long run. **These two changes were made after the third
+review and have not been reviewed.** Left for a later item, from the same review: a credential
+word followed by a suffix (`SECRET_KEY_BASE`, `DB_PASSWORD_PROD`), a key in a yaml list item or
+in one-line JSON, `passphrase` and `db_pass`, and `--rescrub-github` on an empty directory
+ending in a traceback. Seen on the way, for P2 or later since it is server code: on a repository
 that is not Lawang the tour's nodes carry no one-line summaries.
 
 ### P2 Any MCP client
