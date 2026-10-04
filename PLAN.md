@@ -49,20 +49,30 @@ today: `roles.yaml` (Lawang's path globs), `make corpus` (hard-coded `../lawang 
 the image (bakes Lawang's corpus and roles), and the README (no "your own repository" section).
 `scripts/export_corpus.py` already takes any repository path and GitHub name.
 
-- [ ] `make corpus REPO=<path> GITHUB=<owner/name>` with the Lawang values as defaults, and an
+- [x] `make corpus REPO=<path> GITHUB=<owner/name>` with the Lawang values as defaults, and an
       export that works with no GitHub remote (files and commits only, GitHub kinds skipped with a
-      line saying so).
-- [ ] `roles.example.yaml`: a starter with generic scopes (`docs:public`, one `path:` scope per
+      line saying so). Also: `OUT=`, an `--owner` flag in place of the hard-coded login, more
+      source file types than Go's, and commit authors written as `<user>` when a repository has
+      more than one. Re-exporting Lawang at `baa08cf` gives byte-identical JSONL.
+- [x] `roles.example.yaml`: a starter with generic scopes (`docs:public`, one `path:` scope per
       top-level directory, `private:` for globs the adopter names), one comment per line saying what
       the line does. `roles.yaml` stays as the Lawang demo.
-- [ ] Image: document mounting your own corpus and roles
+- [x] Image: document mounting your own corpus and roles
       (`-v ./corpus:/app/corpus -v ./roles.yaml:/app/roles.yaml`). The baked Lawang corpus stays as
       the default so the registry listing keeps working out of the box.
-- [ ] README section "Use it on your own repository": three steps, export, roles, connect.
+- [x] README section "Use it on your own repository": three steps, export, roles, connect.
 
 **Done when:** a public repository that is not Lawang, cloned fresh, yields a corpus; a role whose
 scopes cover two of its directories gets a `/tour` that shows those two and a Withheld line for the
 rest; nothing in the path needs the Lawang name.
+
+Checked Sun 4 Oct on a fresh clone of `gablooge/lawang-onboard` (165 items), with the template's
+two areas set to `internal/tools` and `internal/web`: the contractor's tour lists the docs, the
+setup files and those two directories, 116 items are withheld under `path:repo`, and a search for
+a name that lives in `internal/roles` returns only the visible file that mentions it. Same counts
+from `go run` and from the published `0.1.1` image with the corpus and roles mounted. None of
+this touched the server. Seen on the way, for P2 or later since it is server code: on a repository
+that is not Lawang the tour's nodes carry no one-line summaries.
 
 ### P2 Any MCP client
 

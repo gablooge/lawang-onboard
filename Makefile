@@ -8,9 +8,14 @@ check: secrets vet test
 secrets:
 	gitleaks detect --source . --redact --no-banner
 
-# Rebuilds corpus/*.jsonl from a local clone of the Lawang repository (read-only).
+# Rebuilds a corpus from a local clone (read-only). The defaults rebuild the Lawang demo corpus.
+# Your own repository: make corpus REPO=../myrepo GITHUB=me/myrepo OUT=local/corpus
+# GITHUB= (empty) exports files and commits only, with no network call.
+REPO ?= ../lawang
+GITHUB ?= gablooge/lawang
+OUT ?= corpus
 corpus:
-	./scripts/export_corpus.py ../lawang gablooge/lawang --out corpus
+	./scripts/export_corpus.py $(REPO) $(GITHUB) --out $(OUT)
 
 vet:
 	@if [ -f go.mod ]; then go vet ./...; else echo "no go.mod yet"; fi

@@ -1,0 +1,79 @@
+# Starter roles file for your own repository. Copy it and edit the globs to match your tree:
+#
+#   mkdir -p local && cp roles.example.yaml local/roles.yaml
+#
+# roles.yaml, next to this file, is the Lawang demo and a fuller example.
+#
+# The rule: every corpus item gets scopes from the sections below. A role sees an item only if
+# it holds ALL of the item's scopes. An item that gets no scope is denied to everyone, so a path
+# you forget is hidden, never shown.
+
+scopes:
+  # Path glob -> scope. FIRST MATCH WINS, so private and narrow globs go above broad ones.
+  # "**" matches any number of directories. "*" matches exactly one whole path segment.
+  # There is no partial wildcard: "*.md" is not understood, name the file or use a directory.
+
+  # Things only maintainers may read. Rename or delete to fit.
+  - glob: "internal-notes/**"
+    scope: "private:notes"
+  - glob: "SECURITY.md"
+    scope: "private:security"
+
+  # Documentation everyone on the project may read.
+  - glob: "docs/**"
+    scope: "docs:public"
+  - glob: "README.md"
+    scope: "docs:public"
+  - glob: "CONTRIBUTING.md"
+    scope: "docs:public"
+
+  # How to build, test and run. The setup_guide tool reads the README, the Makefile and the
+  # CI workflows, so a role without this scope gets no setup guidance.
+  - glob: "Makefile"
+    scope: "setup:public"
+  - glob: ".github/**"
+    scope: "setup:public"
+
+  # One scope per area of the code a person can be assigned to. Replace these two with your own
+  # directories; add a line per area.
+  - glob: "src/api/**"
+    scope: "path:src/api"
+  - glob: "src/web/**"
+    scope: "path:src/web"
+
+  # Everything else. Keep this line last. Without it, unlisted paths are denied to every role,
+  # the maintainer included.
+  - glob: "**"
+    scope: "path:repo"
+
+# A commit or a pull request touches several paths and gets the scope of each one. Someone who
+# may read src/api but not src/web does not see a commit that changed both.
+
+# Issues and their comments have no paths. They get a scope from a label if one is listed here,
+# otherwise from their kind. Delete all three sections below if you exported without GitHub.
+label_scopes:
+  confidential: "private:notes"
+
+kind_scopes:
+  issue: "backlog:public"
+  issue_comment: "backlog:public"
+
+# starter_tasks offers an open issue to a role when the role holds the area scope of one of the
+# issue's labels. Here: issues labelled "api" are starter tasks for people who hold path:src/api.
+label_areas:
+  api: "path:src/api"
+
+roles:
+  # token_env names the environment variable that holds the role's token. The token itself is
+  # never written in this file. A role whose variable is unset cannot be used. Two roles with the
+  # same token value are both refused.
+  maintainer:
+    token_env: ONBOARD_TOKEN_MAINTAINER
+    scopes: ["*"]
+  employee:
+    token_env: ONBOARD_TOKEN_EMPLOYEE
+    scopes: ["path:*", "docs:*", "backlog:*", "setup:*"]
+  contractor:
+    # Hired for one area: that area, the public docs, the backlog and the setup files.
+    token_env: ONBOARD_TOKEN_CONTRACTOR
+    scopes: ["path:src/api", "docs:public", "backlog:public", "setup:public"]

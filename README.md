@@ -131,6 +131,57 @@ the same value as `ONBOARD_TOKEN`; that role decides what you see:
 The server is also listed in the [MCP Registry](https://registry.modelcontextprotocol.io) as
 `io.github.gablooge/lawang-onboard`.
 
+## Use it on your own repository
+
+The demo answers about Lawang, but nothing in the server is specific to it. A corpus and a roles
+file are all it reads. Needs Python 3 and git; everything you make goes under `local/`, which git
+ignores.
+
+1. **Export.** From a local clone of your repository:
+
+   ```sh
+   make corpus REPO=../myrepo GITHUB=me/myrepo OUT=local/corpus
+   ```
+
+   This writes files, docs and commits from the clone, and pull requests, reviews and issues from
+   GitHub (public repositories need no token; set `GITHUB_TOKEN` for a private one or a large
+   one). `GITHUB=` with nothing after it skips GitHub and makes no network call. Token-looking
+   strings are replaced everywhere; emails, IP addresses and GitHub logins other than the owner's
+   are replaced in commit messages and GitHub text, while source files keep theirs. The counts
+   are printed and kept in `local/corpus/manifest.json`. The scrub is a net, not a guarantee:
+   read the corpus before you share it with anyone.
+
+2. **Say who sees what.**
+
+   ```sh
+   cp roles.example.yaml local/roles.yaml
+   ```
+
+   Edit the globs to match your tree. Every line is commented. A path you do not list is hidden
+   from everyone, so a mistake hides too much and never too little.
+
+3. **Run.** With Go:
+
+   ```sh
+   set -a; . ./.env; set +a
+   go run ./cmd/onboard -addr :47312 -corpus local/corpus -roles local/roles.yaml
+   ```
+
+   Or with the published image, mounting both over the demo's:
+
+   ```sh
+   docker run --rm -p 47312:47312 --env-file .env \
+     -v "$PWD/local/corpus:/app/corpus:ro" -v "$PWD/local/roles.yaml:/app/roles.yaml:ro" \
+     ghcr.io/gablooge/lawang-onboard:0.1.1
+   ```
+
+   The MCP endpoint is `http://localhost:47312/mcp` and the page is at `/`. For stdio, add `-i`,
+   `-e ONBOARD_TOKEN` and a trailing `-stdio` as in the block above.
+
+What you get depends on what the repository has. The tour, search, `get`, `trace_feature` and
+`why` work on any export. `setup_guide` reads the README, the Makefile and
+`.github/workflows/`. `starter_tasks` needs GitHub issues and a `label_areas` entry.
+
 ## How IBM Bob is used
 
 IBM Bob is both the product's runtime and the tool that built it. The Onboard mode, its rules,

@@ -5,7 +5,9 @@ Data preparation only: it records what exists and where (paths, numbers, links).
 assign scopes; the server does that from roles.yaml at load time.
 
 Usage:
-  scripts/export_corpus.py <path-to-local-clone> <owner/repo> [--out corpus]
+  scripts/export_corpus.py <path-to-local-clone> [<owner/repo>] [--out corpus] [--owner <login>]
+
+Without <owner/repo> only files and commits are exported, and no network call is made.
 
 GitHub access: public repositories work without a token (60 requests per hour). If GITHUB_TOKEN
 is set in the environment it is used; it is never printed, logged or written anywhere.
@@ -21,9 +23,15 @@ import sys
 import urllib.error
 import urllib.request
 
-OWNER_LOGIN = "gablooge"  # the only GitHub login kept as is; every other login is scrubbed
+# The only GitHub login kept as is; every other login is scrubbed. Set in main() from --owner,
+# which defaults to the owner part of <owner/repo>.
+OWNER_LOGIN = None
 
-TEXT_EXT = {".go", ".md", ".sql", ".yaml", ".yml", ".json", ".mod", ".toml", ".txt", ".sh"}
+TEXT_EXT = {
+    ".go", ".md", ".sql", ".yaml", ".yml", ".json", ".mod", ".toml", ".txt", ".sh",
+    ".py", ".js", ".jsx", ".ts", ".tsx", ".rs", ".java", ".kt", ".rb", ".php", ".cs", ".swift",
+    ".c", ".h", ".cc", ".cpp", ".hpp", ".html", ".css", ".proto", ".tf", ".ini", ".cfg", ".rst",
+}
 TEXT_NAMES = {"Makefile", "LICENSE", "Dockerfile", ".gitignore", ".golangci.yml"}
 SKIP_PREFIXES = ("bin/", ".claude/worktrees/", ".git/")
 SKIP_FILES = {"go.sum"}
@@ -154,7 +162,7 @@ def export_commits(repo):
             "hash": full,
             "title": scrub(subject),
             "date": date,
-            "author": OWNER_LOGIN,  # every commit in this repository is the owner's; checked below
+            "author": OWNER_LOGIN,  # right only when one person wrote every commit; fixed below
             "text": scrub(body.strip()),
             "paths": [],
         })
@@ -168,9 +176,12 @@ def export_commits(repo):
         elif line.strip() and cur is not None:
             cur["paths"].append(line.strip())
     authors = set(git(repo, "log", "--format=%ae").split())
-    if len(authors) > 1:
-        report["commit_authors_other_than_owner"] += len(authors) - 1
-        print("warning: commits by more than one author; author field is not reliable", file=sys.stderr)
+    if len(authors) > 1 or OWNER_LOGIN is None:
+        # A commit carries an email, not a login, and an email is not exported. With several
+        # authors, or with no owner named, nobody can be told apart, so nobody is named.
+        report["commit_authors_other_than_owner"] += max(len(authors) - 1, 0)
+        for it in items:
+            it["author"] = "<user>"
     return items
 
 
@@ -342,18 +353,26 @@ def write(out, name, items):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("repo_path")
-    ap.add_argument("github_repo")
+    ap.add_argument("github_repo", nargs="?",
+                    help="owner/name on GitHub; leave out to export files and commits only")
+    ap.add_argument("--owner", help="GitHub login kept as is in the export (default: the owner in owner/name)")
     ap.add_argument("--out", default="corpus")
-    ap.add_argument("--cache", default="corpus/raw/github", help="raw API responses, gitignored; delete to refetch")
+    ap.add_argument("--cache", help="raw API responses; delete to refetch (default: <out>/raw/github)")
     ap.add_argument("--rescrub-github", action="store_true",
                     help="do not call GitHub; re-apply scrubbing to existing prs/reviews/issues.jsonl")
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
+    a.cache = a.cache or os.path.join(a.out, "raw", "github")
+    global OWNER_LOGIN
+    OWNER_LOGIN = a.owner or (a.github_repo.split("/", 1)[0] if a.github_repo else None)
 
     files = export_files(a.repo_path)
     commits = export_commits(a.repo_path)
-    gh = GitHub(a.github_repo, a.cache)
-    if a.rescrub_github:
+    gh = GitHub(a.github_repo, a.cache) if a.github_repo else None
+    if gh is None:
+        print("no <owner/repo> given: pull requests, reviews and issues are not exported", file=sys.stderr)
+        prs, reviews, issues = [], [], []
+    elif a.rescrub_github:
         def load(name):
             with open(os.path.join(a.out, name), encoding="utf-8") as fh:
                 items = [json.loads(l) for l in fh if l.strip()]
@@ -377,11 +396,11 @@ def main():
             counts[it["kind"]] += 1
     head = git(a.repo_path, "rev-parse", "--short", "HEAD").strip()
     manifest = {
-        "source": a.github_repo,
+        "source": a.github_repo or os.path.basename(os.path.abspath(a.repo_path)),
         "source_commit": head,
         "counts": dict(sorted(counts.items())),
         "scrubbed": dict(sorted(report.items())),
-        "github_api_calls": gh.calls,
+        "github_api_calls": gh.calls if gh else 0,
     }
     with open(os.path.join(a.out, "manifest.json"), "w", encoding="utf-8") as fh:
         json.dump(manifest, fh, indent=2, sort_keys=True)
