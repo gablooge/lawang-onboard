@@ -103,8 +103,8 @@ carries the Lawang demo corpus, so there is nothing else to set up. Over HTTPS t
 so ask us for one.
 
 Keep the secret out of any file you commit. The Bob, Claude Code and Cursor snippets below read it
-from your environment, so export it before you start the client; VS Code does not read the
-environment at all and prompts you for it once instead. The two values are deliberately the same:
+from your environment, so export it before you start the client; the VS Code snippets below do not
+read it, and VS Code prompts you for it once instead. The two values are deliberately the same:
 one names the role, the other says which role this client claims.
 
 ```sh
@@ -119,9 +119,11 @@ read; these clients change their configuration formats, so check the page if a s
 
 Copy [`.bob/mcp.example.json`](.bob/mcp.example.json) to `.bob/mcp.json` for a local server over
 stdio, or [`.bob/mcp.remote.example.json`](.bob/mcp.remote.example.json) for the hosted one, put
-your token in, reload MCP servers, switch to the **Onboard** mode and type `/tour`. Those two hold
-the token literally, in a file `.gitignore` keeps out of git, because the local flow under "Run it
-locally" writes it there for you. The block below keeps it in your environment instead.
+your token in, reload MCP servers, switch to the **Onboard** mode and type `/tour`. Both hold the
+token literally, in a file `.gitignore` keeps out of git. For the local one that is what the flow
+under "Run it locally" expects: `scripts/use-role.py` writes the token into that file's `env`
+object for you. The remote one you paste into `headers` yourself, because it has no `env` object
+and that script does not touch it. The block below keeps the token in your environment instead.
 
 For the published image over stdio, with no Go toolchain:
 

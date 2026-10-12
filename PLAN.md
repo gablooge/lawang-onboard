@@ -732,13 +732,14 @@ the servers it started were probes rather than the real thing. Four measurements
 | `headers`: `Authorization: Bearer ${env:PROBE_TOKEN}`, against a local endpoint that logged the header | the throwaway value, expanded |
 | `headers`: `Authorization: Bearer ${PROBE_TOKEN}`, same endpoint | the literal text `Bearer ${PROBE_TOKEN}` |
 | `env`: `PROBE_TOKEN` as `${env:PROBE_TOKEN}` on a stdio probe | the throwaway value, expanded |
-| a stdio probe with no `env` object, one variable exported to Bob | absent. The child got 7 variables: `HOME`, `LC_CTYPE`, `LOGNAME`, `PATH`, `SHELL`, `USER`, `__CF_USER_TEXT_ENCODING`. `TERM` is on Bob's allow-list but was unset in the parent, so it could not appear |
+| a stdio probe with no `env` object, one variable exported to Bob | absent. Bob's filter passed 5 names: `HOME`, `LOGNAME`, `PATH`, `SHELL`, `USER`. `TERM` is the allow-list's sixth name but was unset in the parent, so it could not appear. A Python child handed exactly those 5 names reports 7, adding `LC_CTYPE` and `__CF_USER_TEXT_ENCODING` itself, so an earlier version of this row credited those two to Bob in error |
 
 The same conclusions are in Bob's own shipped text ("`${env:NAME}` reads Bob's process
 environment. An unset variable remains literal", "Bare `${NAME}` and `${workspaceRoot}` are
 unsupported and remain literal") and in its spawn call, which gives a stdio child a fixed
-allow-list plus the entry's own `env` and nothing else. Each probe ran next to a control that did
-match, so a silent zero could not pass for a result.
+allow-list (`HOME`, `LOGNAME`, `PATH`, `SHELL`, `TERM`, `USER`, byte-identical in both bundles)
+plus the entry's own `env` and nothing else, with no shell in the path to add more. Each probe ran
+next to a control that did match, so a silent zero could not pass for a result.
 
 Two consequences that the README now carries. The `env` object cannot be dropped in favour of
 `docker run -e NAME` alone: with the names unset in the child, the image exits 1 with
