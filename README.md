@@ -96,16 +96,19 @@ Design notes: [docs/design.md](docs/design.md).
 | stdio | the image `ghcr.io/gablooge/lawang-onboard:0.1.1`, run with `-stdio` | Docker, and a secret you pick |
 | streamable-http | `https://lawang-onboard.samsulhadi.com/mcp` | a role token from the server operator |
 
-Over stdio you are the operator: pick any secret, give it to one role, and set `ONBOARD_TOKEN` to
-the same value. That role decides what you see, and the image carries the Lawang demo corpus, so
-there is nothing else to set up. Over HTTPS the tokens are ours, so ask us for one.
+`0.1.1` is the tag to pull; the binary inside it still reports `0.1.0` as its `serverInfo.version`,
+so your client may show you that one. Over stdio you are the operator: pick any secret, give it to
+one role, and set `ONBOARD_TOKEN` to the same value. That role decides what you see, and the image
+carries the Lawang demo corpus, so there is nothing else to set up. Over HTTPS the tokens are ours,
+so ask us for one.
 
-Keep the secret out of any file you commit. Every snippet below reads it from your environment, so
-export it first (the two values are deliberately the same: one names the role, the other says which
-role this client claims):
+Keep the secret out of any file you commit. The Bob, Claude Code and Cursor snippets below read it
+from your environment, so export it before you start the client; VS Code does not read the
+environment at all and prompts you for it once instead. The two values are deliberately the same:
+one names the role, the other says which role this client claims.
 
 ```sh
-export ONBOARD_TOKEN=pick-a-secret
+read -rs ONBOARD_TOKEN && export ONBOARD_TOKEN   # typed, so it stays out of your shell history
 export ONBOARD_TOKEN_CONTRACTOR="$ONBOARD_TOKEN"
 ```
 
@@ -116,7 +119,9 @@ read; these clients change their configuration formats, so check the page if a s
 
 Copy [`.bob/mcp.example.json`](.bob/mcp.example.json) to `.bob/mcp.json` for a local server over
 stdio, or [`.bob/mcp.remote.example.json`](.bob/mcp.remote.example.json) for the hosted one, put
-your token in, reload MCP servers, switch to the **Onboard** mode and type `/tour`.
+your token in, reload MCP servers, switch to the **Onboard** mode and type `/tour`. Those two hold
+the token literally, in a file `.gitignore` keeps out of git, because the local flow under "Run it
+locally" writes it there for you. The block below keeps it in your environment instead.
 
 For the published image over stdio, with no Go toolchain:
 
@@ -127,11 +132,27 @@ For the published image over stdio, with no Go toolchain:
       "command": "docker",
       "args": ["run", "-i", "--rm", "-e", "ONBOARD_TOKEN", "-e", "ONBOARD_TOKEN_CONTRACTOR",
                "ghcr.io/gablooge/lawang-onboard:0.1.1", "-stdio"],
-      "env": { "ONBOARD_TOKEN": "pick-a-secret", "ONBOARD_TOKEN_CONTRACTOR": "pick-a-secret" }
+      "env": {
+        "ONBOARD_TOKEN": "${env:ONBOARD_TOKEN}",
+        "ONBOARD_TOKEN_CONTRACTOR": "${env:ONBOARD_TOKEN_CONTRACTOR}"
+      }
     }
   }
 }
 ```
+
+So the file holds a variable name and never your secret. Three Bob details behind that, measured
+on 12 October 2026 (Bob IDE 2.2.1 and Bob Shell 2.0.5, which carry the same MCP client):
+
+- Bob expands `${env:NAME}` from its own environment. `env` and `headers` were tested; `args` goes
+  through the same walk over the entry. A bare `${NAME}` is **not** expanded and arrives as that
+  literal text, which is worth knowing before you copy a `${VAR}` out of an older note.
+- The `env` object is doing real work: Bob gives a stdio server a fixed allow-list (`HOME`,
+  `LOGNAME`, `PATH`, `SHELL`, `TERM`, `USER`) plus the entry's own `env`, and nothing else. So
+  `-e ONBOARD_TOKEN` on its own passes nothing on and the image exits with
+  `onboard: ONBOARD_TOKEN is not set`. Keep both halves.
+- Export the variables before you start Bob. Setting them in another terminal afterwards does not
+  reach a Bob that is already running.
 
 ### Claude Code
 
@@ -157,8 +178,19 @@ claude mcp add --transport http lawang-onboard https://lawang-onboard.samsulhadi
 ```
 
 Both write to local scope, which is this project only; add `--scope user` for every project. The
-single quotes matter: they stop your shell expanding the token into the stored command. Check it
-with `claude mcp get lawang-onboard`, then ask the agent to call `whoami`.
+single quotes matter: they stop your shell expanding the token into the stored command. Checked at
+that default scope on CLI 2.1.293: the entry lands in `~/.claude.json` under this project's path,
+the `${...}` text is what is stored, and `claude mcp list` reports `Connected` with the variables
+exported and `Failed to connect` without them, naming them as missing.
+
+One silent failure to know about on the HTTPS entry. Under "Credential variables that read as
+empty", that page says some credential-like names read as empty instead of expanding in a remote
+server's `url` and `headers`. It gives three categories with examples rather than a list, and says
+a name outside them expands as written. `ONBOARD_TOKEN` is outside them, and it did expand on CLI
+2.1.293, measured against a local endpoint that logged the header it received. If yours reads as
+empty, the header goes out as a bare `Bearer ` and this server answers 401. `claude mcp list` is
+the quick check; `claude --debug-file /tmp/claude-debug.log` and a search for "never expanded
+toward a remote server" is the one that names the variable.
 
 ### Cursor
 
@@ -166,12 +198,14 @@ with `claude mcp get lawang-onboard`, then ask the agent to call `whoami`.
 Cursor resolves `${env:NAME}` in `command`, `args`, `env`, `url` and `headers`. From
 [Cursor's MCP documentation](https://cursor.com/docs/mcp) (read 12 October 2026).
 
-Over stdio, through the image:
+Over stdio, through the image. That page's stdio field table marks `type` required with the value
+`"stdio"`, while none of its stdio examples carry it, so this snippet follows the table:
 
 ```json
 {
   "mcpServers": {
     "lawang-onboard": {
+      "type": "stdio",
       "command": "docker",
       "args": ["run", "-i", "--rm", "-e", "ONBOARD_TOKEN", "-e", "ONBOARD_TOKEN_CONTRACTOR",
                "ghcr.io/gablooge/lawang-onboard:0.1.1", "-stdio"],
@@ -206,9 +240,9 @@ Cursor works out streamable HTTP for itself.
 and variables from [the MCP configuration
 reference](https://code.visualstudio.com/docs/agents/reference/mcp-configuration) (read 12 October
 2026): `type`, `command`, `args`, `env` and `envFile` for stdio, `type`, `url` and `headers` for a
-remote server. That page documents `${input:id}` and `${workspaceFolder}` as the variables you can
-use, and not `${env:NAME}`, so the token comes from an `inputs` entry: VS Code asks for it once, on
-first use, and stores it for later.
+remote server. That page documents `${input:id}` and `${workspaceFolder}`, and not `${env:NAME}`,
+so the token comes from an `inputs` entry: VS Code asks for it once, on first use, and stores it
+for later. Nothing here reads your exported variables.
 
 Over stdio, through the image:
 
@@ -237,7 +271,9 @@ Over stdio, through the image:
 }
 ```
 
-Over HTTPS, through the hosted server, with the same `inputs` block:
+Over HTTPS, through the hosted server. Keep the `inputs` array from the block above in the file:
+on its own this entry leaves `${input:onboard-token}` unresolved and VS Code rejects the
+configuration.
 
 ```json
 {
@@ -252,8 +288,10 @@ Over HTTPS, through the hosted server, with the same `inputs` block:
 ```
 
 The same page describes a portable `.mcp.json` at the workspace root that uses `mcpServers` instead
-of `servers`, which is the shape the Bob and Cursor blocks above already have. VS Code also has a
-`code --add-mcp '<json>'` command for your user profile; the documented example covers `command` and
+of `servers`, which is the shape the Bob and Cursor blocks above already have. The `code --add-mcp`
+command is on a different page, [MCP servers in VS
+Code](https://code.visualstudio.com/docs/copilot/customization/mcp-servers) (read 12 October 2026);
+its example passes one JSON argument with escaped double quotes and covers `name`, `command` and
 `args` only, so for an entry with `env` or `headers` use the file.
 
 The server is also listed in the [MCP Registry](https://registry.modelcontextprotocol.io) as
@@ -263,14 +301,15 @@ The server is also listed in the [MCP Registry](https://registry.modelcontextpro
 
 The nine tools are the same in every client. The guidance around them is not. The Onboard mode's
 rules, its four skills (`tour`, `trace`, `why`, `first-week`) and its three slash commands live in
-[`.bob/`](.bob/), in Bob's own formats, and nothing in the MCP protocol carries them to another
-client. So a Claude Code, Cursor or VS Code user who connects this server gets nine tools and has to
-supply the rest: that the first call should be `whoami`, that the tour fans out over the modules this
-role can see and merges them, that every claim cites an item id, and that the answer ends with the
-Withheld line. Those clients do answer onboarding questions from the filtered corpus, and the filter
-holds for them exactly as it does for Bob. They just do not run the tour as a tour. Serving the four
-skills as MCP prompts, so that any client can call them, is the one P2 item still open in
-[PLAN.md](PLAN.md).
+[`.bob/`](.bob/), in Bob's own formats, and this server does not serve them over MCP yet. So a
+Claude Code, Cursor or VS Code user who connects this server gets nine tools and has to supply the
+rest: that the first call should be `whoami`, that the tour fans out over the modules this role can
+see and merges them, that every claim cites an item id, and that the answer ends with the Withheld
+line. Those clients do answer onboarding questions from the filtered corpus, and the server filters
+their tool calls exactly as it filters Bob's (see the limit below). They just do not run the tour as
+a tour. The protocol has a place for this guidance, and it is empty here: `prompts/list` against the
+published image answers with an empty list. Serving the four skills as MCP prompts, so that any
+client can call them, is the one P2 item still open in [PLAN.md](PLAN.md).
 
 One limit is worth stating plainly, because it is not a setting we can fix. **The filter holds only
 while this server is the model's only view of the code.** Bob's Onboard mode is configured without
