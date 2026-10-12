@@ -32,6 +32,7 @@ This section is the only live part of the file.
 | Sat 3 Oct | Onboard stays a separate project from Lawang. The two join at Lawang's record format (P4), never by merging code. | Lawang's claim is that it stops at the sink; a query layer inside it would blur that. Different licenses (MIT here, Apache 2.0 there). |
 | Sat 3 Oct | Work on Onboard is capped at P1 and P2, a few days, then back to Lawang. P3 is a small CI job. P4 waits for Lawang B09. | Lawang is seven backlog items behind its own dates, and it is the project the paid options depend on. |
 | Sat 3 Oct | Nothing in this section changes `docs/submission/`, `bob_sessions/` or the ledgers. | They describe the hackathon and must stay true to it. |
+| Mon 12 Oct | The mcprush listing stays a container-image source and `server.json` is unchanged. | Their scanner reads npm, PyPI and repository sources only, so a grade there would cost a second listing plus either server code or their gateway in the call path. M8ven already grades the project B, 75 of 100, verified publisher, and a grade is not a user. |
 
 ### Two gates before any product change
 
@@ -113,14 +114,44 @@ guidance that makes the tour a tour.
 
 - [ ] Serve `tour`, `trace`, `why` and `first-week` as MCP prompts, with the same text as
       `.bob/skills/*/SKILL.md` (one source, generated or embedded, not two copies).
-- [ ] Setup snippets in the README for Claude Code (`claude mcp add`), Cursor and VS Code, next to
+      **Not started: this is server code, so it is gated on G1 (judging still unknown, and the
+      server's behaviour stays as submitted until it is) and on G2 (who writes product code after
+      the hackathon, which the decisions table does not yet answer).**
+- [x] Setup snippets in the README for Claude Code (`claude mcp add`), Cursor and VS Code, next to
       the Bob one; stdio through the image and HTTPS through the hosted server.
-- [ ] Say plainly in the README what the Onboard mode does for free in Bob and other clients do
+- [x] Say plainly in the README what the Onboard mode does for free in Bob and other clients do
       not: the filter holds only while the server is the model's only view of the code. A client
       that also reads the working tree sees everything, and no setting of ours can stop it.
 
 **Done when:** Claude Code with the stdio image, Bob not installed, runs the `tour` prompt as
 contractor and its Withheld line matches the Bob run (task 36).
+
+Mon 12 Oct, the two documentation items: README gained "Connect your MCP client" (one table of the
+two transports, then Bob, Claude Code, Cursor and VS Code, each with a stdio entry through the
+`0.1.1` image and an HTTPS entry through the hosted server) and "What you get in Bob that you do
+not get elsewhere". Each client's invocation came from that client's own current documentation,
+read on the day and linked with the date in the README, because these formats move: Claude Code
+`https://code.claude.com/docs/en/mcp`, Cursor `https://cursor.com/docs/mcp`, VS Code
+`https://code.visualstudio.com/docs/agents/reference/mcp-configuration`. Three details are worth
+keeping: Claude Code expands `${VAR}` in `--env` values and in header values, so no token is
+written into a config file; Cursor resolves `${env:NAME}` in the same places; VS Code documents
+`${input:id}` and `${workspaceFolder}` but not `${env:NAME}`, so its snippets take the token from
+a `promptString` input instead of the environment. The mounts for your own corpus are unchanged
+and still described under "Use it on your own repository".
+
+The mcprush listing's SECURITY line (`not scanned yet`) cannot change while the listing's source
+is a container image. mcprush's own documentation, read Mon 12 Oct: scanning covers "servers with
+an npm, PyPI or GitHub source. Remote URLs, container images and skills are not scanned"
+(`https://mcprush.com/docs`, Security and trust), and the trust page lists "a hosted endpoint, a
+container image, or a repository outside GitHub" among the reasons a release shows not scanned,
+adding that "Sources that cannot be scanned do not receive a completed grade"
+(`https://mcprush.com/trust`). Our listing's own Security tab says the same in as many words. It
+is not a queue to wait in. Becoming scannable means a listing whose source is the repository on
+GitHub rather than the image, which is a change at mcprush and not in `server.json`, and which
+their repository flow pairs with either an endpoint that refuses any request without their token
+(server code, G2) or their hosting in the call path (a different product than "runs on your
+machine"). Not done: see the decision below, and "Not doing", which already rules out work whose
+purpose is a score.
 
 ### P3 Fresh corpus
 
