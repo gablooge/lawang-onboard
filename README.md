@@ -84,9 +84,202 @@ Design notes: [docs/design.md](docs/design.md).
 ## Try it
 
 - **Live demo:** https://lawang-onboard.samsulhadi.com (paste a role token to see that role's view).
-- **Connect IBM Bob to the hosted server:** copy
-  [`.bob/mcp.remote.example.json`](.bob/mcp.remote.example.json) to `.bob/mcp.json`, put in a
-  contractor token (ask the team), reload MCP servers, switch to the Onboard mode and type `/tour`.
+- **Connect a client:** IBM Bob, Claude Code, Cursor and VS Code are set up below, over stdio
+  through the published image or over HTTPS through the hosted server.
+
+## Connect your MCP client
+
+[`server.json`](server.json) declares two ways in, and the nine tools are the same through both:
+
+| Transport | Address | What you need |
+|---|---|---|
+| stdio | the image `ghcr.io/gablooge/lawang-onboard:0.1.1`, run with `-stdio` | Docker, and a secret you pick |
+| streamable-http | `https://lawang-onboard.samsulhadi.com/mcp` | a role token from the server operator |
+
+Over stdio you are the operator: pick any secret, give it to one role, and set `ONBOARD_TOKEN` to
+the same value. That role decides what you see, and the image carries the Lawang demo corpus, so
+there is nothing else to set up. Over HTTPS the tokens are ours, so ask us for one.
+
+Keep the secret out of any file you commit. Every snippet below reads it from your environment, so
+export it first (the two values are deliberately the same: one names the role, the other says which
+role this client claims):
+
+```sh
+export ONBOARD_TOKEN=pick-a-secret
+export ONBOARD_TOKEN_CONTRACTOR="$ONBOARD_TOKEN"
+```
+
+Then pick your client. Each snippet names the documentation it came from and the day that page was
+read; these clients change their configuration formats, so check the page if a snippet does not work.
+
+### IBM Bob
+
+Copy [`.bob/mcp.example.json`](.bob/mcp.example.json) to `.bob/mcp.json` for a local server over
+stdio, or [`.bob/mcp.remote.example.json`](.bob/mcp.remote.example.json) for the hosted one, put
+your token in, reload MCP servers, switch to the **Onboard** mode and type `/tour`.
+
+For the published image over stdio, with no Go toolchain:
+
+```json
+{
+  "mcpServers": {
+    "lawang-onboard": {
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "-e", "ONBOARD_TOKEN", "-e", "ONBOARD_TOKEN_CONTRACTOR",
+               "ghcr.io/gablooge/lawang-onboard:0.1.1", "-stdio"],
+      "env": { "ONBOARD_TOKEN": "pick-a-secret", "ONBOARD_TOKEN_CONTRACTOR": "pick-a-secret" }
+    }
+  }
+}
+```
+
+### Claude Code
+
+Two commands, from [the `claude mcp add` reference](https://code.claude.com/docs/en/mcp) (read 12
+October 2026). `--env` values and header values are expanded from your environment when the server
+starts, so the `${...}` text is what gets written to the configuration, not your secret. Everything
+after `--` is passed to the server untouched, which is what lets `docker run` keep its own flags.
+
+Over stdio, through the image:
+
+```sh
+claude mcp add --env 'ONBOARD_TOKEN=${ONBOARD_TOKEN}' \
+  --env 'ONBOARD_TOKEN_CONTRACTOR=${ONBOARD_TOKEN_CONTRACTOR}' --transport stdio lawang-onboard \
+  -- docker run -i --rm -e ONBOARD_TOKEN -e ONBOARD_TOKEN_CONTRACTOR \
+     ghcr.io/gablooge/lawang-onboard:0.1.1 -stdio
+```
+
+Over HTTPS, through the hosted server:
+
+```sh
+claude mcp add --transport http lawang-onboard https://lawang-onboard.samsulhadi.com/mcp \
+  --header 'Authorization: Bearer ${ONBOARD_TOKEN}'
+```
+
+Both write to local scope, which is this project only; add `--scope user` for every project. The
+single quotes matter: they stop your shell expanding the token into the stored command. Check it
+with `claude mcp get lawang-onboard`, then ask the agent to call `whoami`.
+
+### Cursor
+
+`.cursor/mcp.json` in the project, or `~/.cursor/mcp.json` for every project, under `mcpServers`.
+Cursor resolves `${env:NAME}` in `command`, `args`, `env`, `url` and `headers`. From
+[Cursor's MCP documentation](https://cursor.com/docs/mcp) (read 12 October 2026).
+
+Over stdio, through the image:
+
+```json
+{
+  "mcpServers": {
+    "lawang-onboard": {
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "-e", "ONBOARD_TOKEN", "-e", "ONBOARD_TOKEN_CONTRACTOR",
+               "ghcr.io/gablooge/lawang-onboard:0.1.1", "-stdio"],
+      "env": {
+        "ONBOARD_TOKEN": "${env:ONBOARD_TOKEN}",
+        "ONBOARD_TOKEN_CONTRACTOR": "${env:ONBOARD_TOKEN_CONTRACTOR}"
+      }
+    }
+  }
+}
+```
+
+Over HTTPS, through the hosted server:
+
+```json
+{
+  "mcpServers": {
+    "lawang-onboard": {
+      "url": "https://lawang-onboard.samsulhadi.com/mcp",
+      "headers": { "Authorization": "Bearer ${env:ONBOARD_TOKEN}" }
+    }
+  }
+}
+```
+
+A remote entry is a `url` and optional `headers`; the documentation names no transport field, and
+Cursor works out streamable HTTP for itself.
+
+### VS Code
+
+`.vscode/mcp.json` in the workspace, or the same file in your user profile, under `servers`. Fields
+and variables from [the MCP configuration
+reference](https://code.visualstudio.com/docs/agents/reference/mcp-configuration) (read 12 October
+2026): `type`, `command`, `args`, `env` and `envFile` for stdio, `type`, `url` and `headers` for a
+remote server. That page documents `${input:id}` and `${workspaceFolder}` as the variables you can
+use, and not `${env:NAME}`, so the token comes from an `inputs` entry: VS Code asks for it once, on
+first use, and stores it for later.
+
+Over stdio, through the image:
+
+```json
+{
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "onboard-token",
+      "description": "Lawang Onboard role token",
+      "password": true
+    }
+  ],
+  "servers": {
+    "lawang-onboard": {
+      "type": "stdio",
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "-e", "ONBOARD_TOKEN", "-e", "ONBOARD_TOKEN_CONTRACTOR",
+               "ghcr.io/gablooge/lawang-onboard:0.1.1", "-stdio"],
+      "env": {
+        "ONBOARD_TOKEN": "${input:onboard-token}",
+        "ONBOARD_TOKEN_CONTRACTOR": "${input:onboard-token}"
+      }
+    }
+  }
+}
+```
+
+Over HTTPS, through the hosted server, with the same `inputs` block:
+
+```json
+{
+  "servers": {
+    "lawang-onboard": {
+      "type": "http",
+      "url": "https://lawang-onboard.samsulhadi.com/mcp",
+      "headers": { "Authorization": "Bearer ${input:onboard-token}" }
+    }
+  }
+}
+```
+
+The same page describes a portable `.mcp.json` at the workspace root that uses `mcpServers` instead
+of `servers`, which is the shape the Bob and Cursor blocks above already have. VS Code also has a
+`code --add-mcp '<json>'` command for your user profile; the documented example covers `command` and
+`args` only, so for an entry with `env` or `headers` use the file.
+
+The server is also listed in the [MCP Registry](https://registry.modelcontextprotocol.io) as
+`io.github.gablooge/lawang-onboard`.
+
+## What you get in Bob that you do not get elsewhere
+
+The nine tools are the same in every client. The guidance around them is not. The Onboard mode's
+rules, its four skills (`tour`, `trace`, `why`, `first-week`) and its three slash commands live in
+[`.bob/`](.bob/), in Bob's own formats, and nothing in the MCP protocol carries them to another
+client. So a Claude Code, Cursor or VS Code user who connects this server gets nine tools and has to
+supply the rest: that the first call should be `whoami`, that the tour fans out over the modules this
+role can see and merges them, that every claim cites an item id, and that the answer ends with the
+Withheld line. Those clients do answer onboarding questions from the filtered corpus, and the filter
+holds for them exactly as it does for Bob. They just do not run the tour as a tour. Serving the four
+skills as MCP prompts, so that any client can call them, is the one P2 item still open in
+[PLAN.md](PLAN.md).
+
+One limit is worth stating plainly, because it is not a setting we can fix. **The filter holds only
+while this server is the model's only view of the code.** Bob's Onboard mode is configured without
+file system access, so there the filtered corpus is all the model has. Claude Code, Cursor and VS
+Code read your working tree by default, and a model that can open a file does not need to ask us for
+it: it sees whatever is checked out, whatever `roles.yaml` says. Nothing we ship changes that, and no
+option on our side could. If the point is to see what a role sees, connect from a client or a mode
+with no file access, or from a machine that has no clone. Otherwise the withheld counts describe the
+corpus, which is still true, and not your disk.
 
 ## Run it locally
 
@@ -112,24 +305,8 @@ make test                                       # go test -race -count=1 ./...
 
 Hosting (Docker and a Cloudflare Tunnel, `make up`): [docs/deploy.md](docs/deploy.md).
 
-Or run the published image over stdio, no Go needed. Pick any secret, give it to one role, and use
-the same value as `ONBOARD_TOKEN`; that role decides what you see:
-
-```json
-{
-  "mcpServers": {
-    "lawang-onboard": {
-      "command": "docker",
-      "args": ["run", "-i", "--rm", "-e", "ONBOARD_TOKEN", "-e", "ONBOARD_TOKEN_CONTRACTOR",
-               "ghcr.io/gablooge/lawang-onboard:0.1.1", "-stdio"],
-      "env": { "ONBOARD_TOKEN": "pick-a-secret", "ONBOARD_TOKEN_CONTRACTOR": "pick-a-secret" }
-    }
-  }
-}
-```
-
-The server is also listed in the [MCP Registry](https://registry.modelcontextprotocol.io) as
-`io.github.gablooge/lawang-onboard`.
+To skip the Go toolchain entirely, run the published image instead: the snippets under
+[Connect your MCP client](#connect-your-mcp-client) do that for each client.
 
 ## Use it on your own repository
 
@@ -198,9 +375,10 @@ Every command below runs in a clone of this repository, and everything you make 
      ghcr.io/gablooge/lawang-onboard:0.1.1
    ```
 
-   The MCP endpoint is `http://localhost:47312/mcp` and the page is at `/`. For stdio, take the
-   JSON block under "Run it locally" and add the two `-v` mounts to its `args`, with absolute
-   paths (there is no shell there to expand `$PWD`); it has no `-p`.
+   The MCP endpoint is `http://localhost:47312/mcp` and the page is at `/`. For stdio, take your
+   client's `docker run` entry from [Connect your MCP client](#connect-your-mcp-client) and add the
+   two `-v` mounts to its arguments, with absolute paths (there is no shell there to expand
+   `$PWD`); it has no `-p`.
 
 What you get depends on what the repository has. The tour, search, `get`, `trace_feature` and
 `why` work on any export. `setup_guide` reads the README, the Makefile and
