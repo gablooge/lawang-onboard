@@ -32,6 +32,7 @@ This section is the only live part of the file.
 | Sat 3 Oct | Onboard stays a separate project from Lawang. The two join at Lawang's record format (P4), never by merging code. | Lawang's claim is that it stops at the sink; a query layer inside it would blur that. Different licenses (MIT here, Apache 2.0 there). |
 | Sat 3 Oct | Work on Onboard is capped at P1 and P2, a few days, then back to Lawang. P3 is a small CI job. P4 waits for Lawang B09. | Lawang is seven backlog items behind its own dates, and it is the project the paid options depend on. |
 | Sat 3 Oct | Nothing in this section changes `docs/submission/`, `bob_sessions/` or the ledgers. | They describe the hackathon and must stay true to it. |
+| Mon 12 Oct | The listing on mcprush (a second directory, not M8ven) stays a container-image source, and `server.json` is unchanged. | mcprush's scanner reads npm, PyPI and repository sources only, so a grade there would cost a second listing plus either server code or their gateway in the call path. M8ven, the one in the README badge, already grades the project B, 75 of 100, verified publisher, and a grade is not a user. |
 
 ### Two gates before any product change
 
@@ -113,14 +114,69 @@ guidance that makes the tour a tour.
 
 - [ ] Serve `tour`, `trace`, `why` and `first-week` as MCP prompts, with the same text as
       `.bob/skills/*/SKILL.md` (one source, generated or embedded, not two copies).
-- [ ] Setup snippets in the README for Claude Code (`claude mcp add`), Cursor and VS Code, next to
+      **Not started: this is server code, so it is gated on G1 (judging still unknown, and the
+      server's behaviour stays as submitted until it is) and on G2 (who writes product code after
+      the hackathon, which the decisions table does not yet answer).**
+- [x] Setup snippets in the README for Claude Code (`claude mcp add`), Cursor and VS Code, next to
       the Bob one; stdio through the image and HTTPS through the hosted server.
-- [ ] Say plainly in the README what the Onboard mode does for free in Bob and other clients do
+- [x] Say plainly in the README what the Onboard mode does for free in Bob and other clients do
       not: the filter holds only while the server is the model's only view of the code. A client
       that also reads the working tree sees everything, and no setting of ours can stop it.
 
 **Done when:** Claude Code with the stdio image, Bob not installed, runs the `tour` prompt as
-contractor and its Withheld line matches the Bob run (task 36).
+contractor and its Withheld line matches the Bob run (task 36). **Unmet, and it stays unmet until
+item 1 lands:** there is no `tour` prompt to run, and `prompts/list` against the published image
+answers with an empty list. The two ticks below are the two documentation items only.
+
+Mon 12 Oct, the two documentation items: README gained "Connect your MCP client" (one table of the
+two transports, then Bob, Claude Code, Cursor and VS Code, each with a stdio entry through the
+`0.1.1` image and an HTTPS entry through the hosted server) and "What you get in Bob that you do
+not get elsewhere". Each client's invocation came from that client's own current documentation,
+read on the day and linked with the date in the README, because these formats move: Claude Code
+`https://code.claude.com/docs/en/mcp`, Cursor `https://cursor.com/docs/mcp`, VS Code
+`https://code.visualstudio.com/docs/agents/reference/mcp-configuration`. Four details are worth
+keeping: Bob expands `${env:NAME}` and not a bare `${NAME}` (section 8, tested); Claude Code
+expands `${VAR}` in `--env` values and in header values, so no token is written into a config
+file; Cursor resolves `${env:NAME}` in the same places; VS Code documents `${input:id}` and
+`${workspaceFolder}` but not `${env:NAME}`, so its snippets take the token from a `promptString`
+input instead of the environment. The mounts for your own corpus are unchanged and still described
+under "Use it on your own repository".
+
+After review round 2, all documentation: Cursor's stdio snippet gained `"type": "stdio"`, which
+that page's field table marks required while none of its own examples carry it; the sentence
+promising that every snippet reads the secret from the environment was false for Bob and for VS
+Code, so the Bob block now uses `${env:NAME}` (tested, section 8) and the sentence names which
+clients do what; "nothing in the MCP protocol carries them" was wrong, since the protocol has
+prompts and serving them is item 1 above, so it now says this server does not serve them yet; and
+"the filter holds for them exactly as it does for Bob" is now about the server filtering their
+tool calls, which is what survives the limit stated in the next paragraph. Smaller ones in the
+same pass: `read -rs` instead of an `export` that lands in shell history, the `code --add-mcp`
+sentence now cites the page that documents it, the VS Code HTTPS block says to keep the `inputs`
+array, the Claude Code section says which scope was tried and what a missing variable looks like,
+and the transport table says the `0.1.1` image reports `0.1.0` as its `serverInfo.version`. That
+last one is a real mismatch between the tag, `server.json` and the binary; fixing it is server
+code, so it waits on G1 and G2 with item 1.
+
+mcprush is a second directory and not M8ven: the badge at the top of the README and every other
+grade in this file are M8ven at `m8ven.ai`, and the two have nothing to do with each other. **No
+mcprush listing URL is recorded, and this file cannot give one honestly:** every mcprush page,
+including the two quoted below, answers 403 to a plain `curl` and to a fetch tool, so the quotes
+come from a browser session on Mon 12 Oct and a later reader cannot re-check them the way this
+paragraph invites. If the listing matters later, paste its URL here from the browser.
+
+The mcprush listing's SECURITY line (`not scanned yet`) cannot change while the listing's source
+is a container image. mcprush's own documentation, read Mon 12 Oct: scanning covers "servers with
+an npm, PyPI or GitHub source. Remote URLs, container images and skills are not scanned"
+(`https://mcprush.com/docs`, Security and trust), and the trust page lists "a hosted endpoint, a
+container image, or a repository outside GitHub" among the reasons a release shows not scanned,
+adding that "Sources that cannot be scanned do not receive a completed grade"
+(`https://mcprush.com/trust`). Our listing's own Security tab says the same in as many words. It
+is not a queue to wait in. Becoming scannable means a listing whose source is the repository on
+GitHub rather than the image, which is a change at mcprush and not in `server.json`, and which
+their repository flow pairs with either an endpoint that refuses any request without their token
+(server code, G2) or their hosting in the call path (a different product than "runs on your
+machine"). Not done: see the decision below, and "Not doing", which already rules out work whose
+purpose is a score.
 
 ### P3 Fresh corpus
 
@@ -655,15 +711,43 @@ MCP entry for the local server (the token comes from an env var, never literal i
     "lawang-onboard": {
       "type": "streamable-http",
       "url": "http://localhost:8080/mcp",
-      "headers": { "Authorization": "Bearer ${ONBOARD_TOKEN_CONTRACTOR}" },
+      "headers": { "Authorization": "Bearer ${env:ONBOARD_TOKEN_CONTRACTOR}" },
       "alwaysAllow": ["whoami", "map_system", "search", "get", "trace_feature", "why", "setup_guide", "starter_tasks", "withheld"]
     }
   }
 }
 ```
 
-(verify) whether Bob expands `${VAR}` in headers. If not, use the stdio form with `env`, and keep
-the real `.bob/mcp.json` out of git with a committed `.bob/mcp.example.json`.
+**Answered Mon 12 Oct, by test, on Bob IDE 2.2.1 (extension `bob-code` 2.2.1) and Bob Shell 2.0.5
+(commit 2dc180906), which ship the same MCP client code.** The note above used to read "(verify)
+whether Bob expands `${VAR}` in headers". It does not expand that form; the shape it expands is
+`${env:NAME}`, so the snippet above has been corrected.
+
+How it was tested, with no model call and no Bobcoin spent: `bob acp` was driven over stdio as far
+as `session/new`, which starts the workspace's MCP servers and then stops on authentication, and
+the servers it started were probes rather than the real thing. Four measurements:
+
+| What was configured | What arrived |
+|---|---|
+| `headers`: `Authorization: Bearer ${env:PROBE_TOKEN}`, against a local endpoint that logged the header | the throwaway value, expanded |
+| `headers`: `Authorization: Bearer ${PROBE_TOKEN}`, same endpoint | the literal text `Bearer ${PROBE_TOKEN}` |
+| `env`: `PROBE_TOKEN` as `${env:PROBE_TOKEN}` on a stdio probe | the throwaway value, expanded |
+| a stdio probe with no `env` object, one variable exported to Bob | absent. Bob's filter passed 5 names: `HOME`, `LOGNAME`, `PATH`, `SHELL`, `USER`. `TERM` is the allow-list's sixth name but was unset in the parent, so it could not appear. A Python child handed exactly those 5 names reports 7, adding `LC_CTYPE` and `__CF_USER_TEXT_ENCODING` itself, so an earlier version of this row credited those two to Bob in error |
+
+The same conclusions are in Bob's own shipped text ("`${env:NAME}` reads Bob's process
+environment. An unset variable remains literal", "Bare `${NAME}` and `${workspaceRoot}` are
+unsupported and remain literal") and in its spawn call, which gives a stdio child a fixed
+allow-list (`HOME`, `LOGNAME`, `PATH`, `SHELL`, `TERM`, `USER`, byte-identical in both bundles)
+plus the entry's own `env` and nothing else, with no shell in the path to add more. Each probe ran
+next to a control that did match, so a silent zero could not pass for a result.
+
+Two consequences that the README now carries. The `env` object cannot be dropped in favour of
+`docker run -e NAME` alone: with the names unset in the child, the image exits 1 with
+`onboard: ONBOARD_TOKEN is not set`, which was confirmed against `0.1.1` directly. And the whole
+chain works as documented: Bob, `${env:...}`, `docker run`, the published image, 9 tools loaded
+and the session connected. A value set in another terminal after Bob started does not reach it.
+
+Still true: keep the real `.bob/mcp.json` out of git, with a committed `.bob/mcp.example.json`.
 
 Custom mode shape:
 
