@@ -307,13 +307,15 @@ mode's four skills (`tour`, `trace`, `why`, `first-week`) are written once, in
 [`.bob/skills/`](.bob/skills/), and the server serves that same text as MCP prompts, each one
 preceded by the mode's rules from [`.bob/rules-onboard/`](.bob/rules-onboard/): call `whoami`
 first, answer only from tool results, cite every item id, end with the Withheld line. `trace`
-takes a `term` and `why` takes a `path`; both are required, and the value is appended after the
-text as data, never substituted into it. So a client that is not Bob runs the tour as a tour:
+takes a `term` and `why` takes a `path`; both are required, one line of at most 512 bytes with
+something visible in it, and the value is appended after the text as data, never substituted
+into it. So a client that is not Bob runs the tour as a tour:
 
 | Client | How the prompt appears |
 |---|---|
-| Claude Code | `/mcp__lawang-onboard__tour`, `/mcp__lawang-onboard__trace webhook` |
-| Cursor, VS Code | the prompts list of the `lawang-onboard` server (Cursor: `/` in chat; VS Code: `/mcp.lawang-onboard.tour`) |
+| Claude Code | `/mcp__lawang-onboard__tour`, `/mcp__lawang-onboard__trace webhook`; the `/` menu lists them as `/lawang-onboard:tour (MCP)`. Arguments are split on whitespace, so `trace message broker` sends `message` alone: use a one-word term ([Claude Code MCP docs](https://code.claude.com/docs/en/mcp), read 28 October 2026) |
+| VS Code | `/lawang-onboard.tour` in chat ([VS Code MCP servers](https://code.visualstudio.com/docs/copilot/customization/mcp-servers), read 28 October 2026; not run) |
+| Cursor | [Cursor's MCP docs](https://cursor.com/docs/context/mcp) (read 28 October 2026) list prompts as supported and do not say how to invoke one; not run |
 | Any MCP client | `prompts/list`, then `prompts/get` with the name and arguments |
 
 Checked on 28 October 2026 with Claude Code 2.1.311 from an empty directory, the `0.1.2` build over

@@ -1,4 +1,4 @@
 ---
 argument-hint: path
 ---
-Switch to the Onboard mode and call the lawang-onboard why tool for the given repository path.
+Switch to the Onboard mode and run the why skill for the given repository path.

@@ -39,4 +39,5 @@ Keep each day to 3-5 bullet points. Cite every item ID used.
 
 ## Step 5 - Withheld line
 
-Call `withheld` and append: `Withheld: <scope> (<count>), ...` (or `Withheld: none`).
+Call `withheld` and append: `Withheld: <scope> (<count>), ... | total hidden: <total>` (or
+`Withheld: none`).

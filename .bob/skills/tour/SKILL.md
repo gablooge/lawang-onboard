@@ -40,5 +40,6 @@ Collect the subagent summaries and assemble them into a single first-day tour do
 
 ## Step 5 - Withheld line
 
-Call `withheld` and append: `Withheld: <scope> (<count>), ...` (or `Withheld: none`).
+Call `withheld` and append: `Withheld: <scope> (<count>), ... | total hidden: <total>` (or
+`Withheld: none`).
 Note any modules that could not be summarized because items were withheld.

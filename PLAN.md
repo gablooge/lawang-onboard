@@ -34,8 +34,8 @@ This section is the only live part of the file.
 | Sat 3 Oct | Onboard stays a separate project from Lawang. The two join at Lawang's record format (P4), never by merging code. | Lawang's claim is that it stops at the sink; a query layer inside it would blur that. Different licenses (MIT here, Apache 2.0 there). |
 | Sat 3 Oct | Work on Onboard is capped at P1 and P2, a few days, then back to Lawang. P3 is a small CI job. P4 waits for Lawang B09. | Lawang is seven backlog items behind its own dates, and it is the project the paid options depend on. |
 | Sat 3 Oct | Nothing in this section changes `docs/submission/`, `bob_sessions/` or the ledgers. | They describe the hackathon and must stay true to it. |
-| Tue 28 Oct | G1 is cleared (results final) and G2 is answered: Claude Code writes product code from now on, through the same branch, PR and review cycle. `CLAUDE.md` rule 1 says so; the submission files stay as they are. | Samsul said "continue the onboard" once the results were final. The reason for rule 1 (Bob evidence for the judges) ended with judging. |
 | Mon 12 Oct | The listing on mcprush (a second directory, not M8ven) stays a container-image source, and `server.json` is unchanged. | mcprush's scanner reads npm, PyPI and repository sources only, so a grade there would cost a second listing plus either server code or their gateway in the call path. M8ven, the one in the README badge, already grades the project B, 75 of 100, verified publisher, and a grade is not a user. |
+| Tue 28 Oct | G1 is cleared (results final) and G2 is answered: Claude Code writes product code from now on, through the same branch, PR and review cycle. `CLAUDE.md` rule 1 says so; the submission files stay as they are. | Samsul said "continue the onboard" once the results were final. The reason for rule 1 (Bob evidence for the judges) ended with judging. |
 
 ### Two gates before any product change (both cleared Tue 28 Oct, see the decisions table)
 
@@ -111,8 +111,8 @@ that is not Lawang the tour's nodes carry no one-line summaries.
 
 ### P2 Any MCP client
 
-The skills and slash commands live in `.bob/` and the README leads with Bob. The server exposes
-tools only, no MCP prompts, so a Claude Code or Cursor user gets the tools and none of the
+The skills and slash commands live in `.bob/` and the README led with Bob. Until PR #3 the server
+exposed tools only, no MCP prompts, so a Claude Code or Cursor user got the tools and none of the
 guidance that makes the tour a tour.
 
 - [x] Serve `tour`, `trace`, `why` and `first-week` as MCP prompts, with the same text as

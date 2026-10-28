@@ -46,6 +46,11 @@ func main() {
 		log.Println("WARNING: -demo-roles is on; /api/* accepts ?role= without a token. Do not use in production.")
 	}
 
+	// The prompts are embedded, so a failure here is a broken build: stop before listening.
+	if _, err := prompts.Load(); err != nil {
+		log.Fatalf("load prompts: %v", err)
+	}
+
 	items, err := corpus.Load(*corpusDir, cfg)
 	if err != nil {
 		log.Fatalf("load corpus: %v", err)
@@ -157,7 +162,7 @@ func buildServer(cfg *roles.Config, role roles.Role, items []corpus.Item) *mcp.S
 	srv := mcp.NewServer(impl, nil)
 	registerTools(srv, cfg, role, items)
 	if err := prompts.Register(srv); err != nil {
-		// The skills are embedded at build time, so this is a broken build, not a bad request.
+		// Unreachable once main has called prompts.Load: the parse is cached, so its error is too.
 		log.Fatalf("register prompts: %v", err)
 	}
 	return srv
