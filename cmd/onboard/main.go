@@ -22,6 +22,7 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
 	"github.com/gablooge/lawang-onboard/internal/corpus"
+	"github.com/gablooge/lawang-onboard/internal/prompts"
 	"github.com/gablooge/lawang-onboard/internal/roles"
 	"github.com/gablooge/lawang-onboard/internal/tools"
 	"github.com/gablooge/lawang-onboard/internal/web"
@@ -141,14 +142,24 @@ func bearerRole(cfg *roles.Config, r *http.Request) (roles.Role, bool) {
 	return cfg.RoleForToken(token)
 }
 
-// buildServer constructs an MCP server for the given role with all tools wired.
+// version is what the server reports as serverInfo.version. A test holds it equal to the
+// version in server.json, so the registry listing, the image tag and the binary say one thing.
+const version = "0.1.2"
+
+// buildServer constructs an MCP server for the given role with all tools wired, and the four
+// skills as prompts. The prompts carry no role: they are guidance, and every tool they name
+// filters by the role as before.
 func buildServer(cfg *roles.Config, role roles.Role, items []corpus.Item) *mcp.Server {
 	impl := &mcp.Implementation{
 		Name:    "lawang-onboard",
-		Version: "0.1.0",
+		Version: version,
 	}
 	srv := mcp.NewServer(impl, nil)
 	registerTools(srv, cfg, role, items)
+	if err := prompts.Register(srv); err != nil {
+		// The skills are embedded at build time, so this is a broken build, not a bad request.
+		log.Fatalf("register prompts: %v", err)
+	}
 	return srv
 }
 
@@ -282,4 +293,3 @@ func registerTools(srv *mcp.Server, cfg *roles.Config, role roles.Role, items []
 		return nil, result, nil
 	})
 }
-

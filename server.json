@@ -3,7 +3,7 @@
   "name": "io.github.gablooge/lawang-onboard",
   "title": "Lawang Onboard",
   "description": "Permission-aware onboarding MCP server: answers about a codebase, filtered by the caller's role.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "repository": {
     "url": "https://github.com/gablooge/lawang-onboard",
     "source": "github"
@@ -12,7 +12,7 @@
   "packages": [
     {
       "registryType": "oci",
-      "identifier": "ghcr.io/gablooge/lawang-onboard:0.1.1",
+      "identifier": "ghcr.io/gablooge/lawang-onboard:0.1.2",
       "transport": {
         "type": "stdio"
       },

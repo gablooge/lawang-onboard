@@ -12,8 +12,10 @@ This section is the only live part of the file.
 
 ### Where it stands
 
-- Submitted. Judging result: **(fill in when known)**. Until it is known, no change to what the
-  server does; documentation and planning only.
+- Submitted. Judging result, read on the lablab live page on Tue 28 Oct 2026, "results final":
+  1,130 projects from 3,462 teams; winners Amend (Diff & Conquer), Inbin Gate (Inbin), SoloTrace.
+  Lawang Onboard did not place. The $100 participant reward depends on the feedback form (F4)
+  and is not recorded here.
 - Landed since the deadline, outside any plan: `PRIVACY.md`, read-only annotations on all nine
   tools, memory limits and log rotation in `compose.yaml`, the GitHub link on the demo page, the
   image `ghcr.io/gablooge/lawang-onboard:0.1.1`, `server.json` and the MCP Registry listing
@@ -32,9 +34,10 @@ This section is the only live part of the file.
 | Sat 3 Oct | Onboard stays a separate project from Lawang. The two join at Lawang's record format (P4), never by merging code. | Lawang's claim is that it stops at the sink; a query layer inside it would blur that. Different licenses (MIT here, Apache 2.0 there). |
 | Sat 3 Oct | Work on Onboard is capped at P1 and P2, a few days, then back to Lawang. P3 is a small CI job. P4 waits for Lawang B09. | Lawang is seven backlog items behind its own dates, and it is the project the paid options depend on. |
 | Sat 3 Oct | Nothing in this section changes `docs/submission/`, `bob_sessions/` or the ledgers. | They describe the hackathon and must stay true to it. |
+| Tue 28 Oct | G1 is cleared (results final) and G2 is answered: Claude Code writes product code from now on, through the same branch, PR and review cycle. `CLAUDE.md` rule 1 says so; the submission files stay as they are. | Samsul said "continue the onboard" once the results were final. The reason for rule 1 (Bob evidence for the judges) ended with judging. |
 | Mon 12 Oct | The listing on mcprush (a second directory, not M8ven) stays a container-image source, and `server.json` is unchanged. | mcprush's scanner reads npm, PyPI and repository sources only, so a grade there would cost a second listing plus either server code or their gateway in the call path. M8ven, the one in the README badge, already grades the project B, 75 of 100, verified publisher, and a grade is not a user. |
 
-### Two gates before any product change
+### Two gates before any product change (both cleared Tue 28 Oct, see the decisions table)
 
 - **G1 Judging.** Check the lablab page. Until the result is out, the server's behaviour stays as
   submitted.
@@ -112,11 +115,16 @@ The skills and slash commands live in `.bob/` and the README leads with Bob. The
 tools only, no MCP prompts, so a Claude Code or Cursor user gets the tools and none of the
 guidance that makes the tour a tour.
 
-- [ ] Serve `tour`, `trace`, `why` and `first-week` as MCP prompts, with the same text as
-      `.bob/skills/*/SKILL.md` (one source, generated or embedded, not two copies).
-      **Not started: this is server code, so it is gated on G1 (judging still unknown, and the
-      server's behaviour stays as submitted until it is) and on G2 (who writes product code after
-      the hackathon, which the decisions table does not yet answer).**
+- [x] Serve `tour`, `trace`, `why` and `first-week` as MCP prompts, with the same text as
+      `.bob/skills/*/SKILL.md` (one source, generated or embedded, not two copies). Done Tue 28
+      Oct (PR #3): the module root package embeds the four `SKILL.md` files and the mode's rules
+      from `.bob/` (an embed pattern cannot reach above its package, which is why the package
+      sits at the root), `internal/prompts` parses the frontmatter and serves each skill as a
+      prompt with the rules in front; `trace` takes `term` and `why` takes `path`, required,
+      appended after the text as data. The `why` skill was a one-line "switch to the Onboard
+      mode" and is now a procedure like `trace`. `.dockerignore` lets `.bob/skills/` and
+      `.bob/rules-onboard/` into the build. The binary reports `0.1.2`, held equal to
+      `server.json` by a test, so the mismatch noted under P2 is closed with the next tag.
 - [x] Setup snippets in the README for Claude Code (`claude mcp add`), Cursor and VS Code, next to
       the Bob one; stdio through the image and HTTPS through the hosted server.
 - [x] Say plainly in the README what the Onboard mode does for free in Bob and other clients do
@@ -124,9 +132,17 @@ guidance that makes the tour a tour.
       that also reads the working tree sees everything, and no setting of ours can stop it.
 
 **Done when:** Claude Code with the stdio image, Bob not installed, runs the `tour` prompt as
-contractor and its Withheld line matches the Bob run (task 36). **Unmet, and it stays unmet until
-item 1 lands:** there is no `tour` prompt to run, and `prompts/list` against the published image
-answers with an empty list. The two ticks below are the two documentation items only.
+contractor and its Withheld line matches the Bob run (task 36). **Met Tue 28 Oct:** Claude Code
+2.1.311, run with `-p` from an empty directory in the scratchpad (no clone, so the model had no
+file to read), `--mcp-config` naming the locally built `0.1.2` image over stdio with the
+contractor token, `--strict-mcp-config`, tools allowed for that server only. It answered
+`Role: contractor`, built the tour from the tools, and closed with `Withheld: path:cmd (68),
+path:internal/core (314), path:migrations (56), path:repo (86), private:growth (18),
+private:security (6) | total hidden: 399`, the line task 36 shows. Two turns, about USD 1.78 of
+API use. The run also showed where the tour is thin outside Bob: it reported `architecture.md`
+as too large to return whole, and it named four modules it could not summarize because the
+subagent step found them in `search` results while `map_system` did not list them for the role
+(rule 5 handled it: they were reported as gaps, not described).
 
 Mon 12 Oct, the two documentation items: README gained "Connect your MCP client" (one table of the
 two transports, then Bob, Claude Code, Cursor and VS Code, each with a stdio entry through the
