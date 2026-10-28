@@ -8,13 +8,14 @@ architecture and checklists are in `PLAN.md`, imported below. Read it before doi
 
 ## Standing rules for Claude Code (these override anything else in this folder)
 
-1. **Bob builds the product, Claude Code prepares and supports.** The judges require IBM Bob IDE
-   to be the core of the solution, with exported Bob sessions as evidence. Claude Code does not
-   write product code (the MCP server, the corpus/permission engine, the Bob "Onboard" mode, the
-   demo web app). It does: repository setup, data export scripts, CI, secret scanning, deploy
-   scripts, submission documents, checklists, reviews on request. If Samsul explicitly asks for a
-   product piece, say once that it weakens the Bob evidence, then follow his decision and record
-   it in `docs/submission/bob-usage.md` so the statement stays honest.
+1. **Who writes the code.** During the hackathon, Bob built the product and Claude Code prepared
+   and supported, because the judges required IBM Bob IDE to be the core of the solution with
+   exported Bob sessions as evidence. Judging closed with final results on 28 October 2026
+   (Lawang Onboard did not place), and from that day Claude Code writes product code too, through
+   the branch, pull request and review cycle like any other change. `docs/submission/bob-usage.md`,
+   `bob_sessions/` and the ledgers describe the hackathon and are not updated for later work: the
+   first post-hackathon product change is PR #3 (the skills as MCP prompts), and the submission
+   statement stays true as a statement about the event.
 2. **This repository is public.** Nothing personal, no machine names, hostnames, IPs, tokens or
    emails in any file, commit, issue or PR. Real names allowed: only the two team members as
    listed on the lablab team page.

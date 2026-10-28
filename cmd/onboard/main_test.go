@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -266,5 +267,63 @@ func TestToolAnnotations(t *testing.T) {
 		if !found {
 			t.Errorf("unexpected tool %q in ListTools result; add it to wantNames", tool.Name)
 		}
+	}
+}
+
+// TestVersionMatchesServerJSON holds the binary's serverInfo.version to the version the MCP
+// Registry listing declares, so a client is not shown a different number from the tag it pulled.
+func TestVersionMatchesServerJSON(t *testing.T) {
+	raw, err := os.ReadFile("../../server.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var sj struct {
+		Version string `json:"version"`
+	}
+	if err := json.Unmarshal(raw, &sj); err != nil {
+		t.Fatal(err)
+	}
+	if sj.Version != version {
+		t.Errorf("server.json says %q, the binary says %q", sj.Version, version)
+	}
+}
+
+// TestPromptsAreServedForEveryRole: the prompts are guidance and carry no role, so a contractor
+// and a maintainer list the same four and get the same text.
+func TestPromptsAreServedForEveryRole(t *testing.T) {
+	cfg := testSetup(t)
+	ctx := context.Background()
+	var texts []string
+	for _, env := range []string{"TEST_ONBOARD_TOKEN_CONTRACTOR", "TEST_ONBOARD_TOKEN_MAINTAINER"} {
+		role, ok := cfg.RoleForToken(os.Getenv(env))
+		if !ok {
+			t.Fatalf("%s: no role", env)
+		}
+		ct, st := mcp.NewInMemoryTransports()
+		ss, err := buildServer(cfg, role, nil).Connect(ctx, st, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		cs, err := mcp.NewClient(&mcp.Implementation{Name: "test", Version: "0.0.0"}, nil).Connect(ctx, ct, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		list, err := cs.ListPrompts(ctx, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(list.Prompts) != 4 {
+			t.Errorf("%s: %d prompts", role.Name, len(list.Prompts))
+		}
+		got, err := cs.GetPrompt(ctx, &mcp.GetPromptParams{Name: "tour"})
+		if err != nil {
+			t.Fatal(err)
+		}
+		texts = append(texts, got.Messages[0].Content.(*mcp.TextContent).Text)
+		cs.Close()
+		ss.Close()
+	}
+	if texts[0] != texts[1] {
+		t.Error("the tour prompt differs between roles")
 	}
 }

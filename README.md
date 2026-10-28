@@ -89,15 +89,16 @@ Design notes: [docs/design.md](docs/design.md).
 
 ## Connect your MCP client
 
-[`server.json`](server.json) declares two ways in, and the nine tools are the same through both:
+[`server.json`](server.json) declares two ways in, and the nine tools and four prompts are the same
+through both:
 
 | Transport | Address | What you need |
 |---|---|---|
-| stdio | the image `ghcr.io/gablooge/lawang-onboard:0.1.1`, run with `-stdio` | Docker, and a secret you pick |
+| stdio | the image `ghcr.io/gablooge/lawang-onboard:0.1.2`, run with `-stdio` | Docker, and a secret you pick |
 | streamable-http | `https://lawang-onboard.samsulhadi.com/mcp` | a role token from the server operator |
 
-`0.1.1` is the tag to pull; the binary inside it still reports `0.1.0` as its `serverInfo.version`,
-so your client may show you that one. Over stdio you are the operator: pick any secret, give it to
+`0.1.2` is the tag to pull, and it is the first whose binary reports the tag as its
+`serverInfo.version` (`0.1.1` reported `0.1.0`) and the first that serves the prompts. Over stdio you are the operator: pick any secret, give it to
 one role, and set `ONBOARD_TOKEN` to the same value. That role decides what you see, and the image
 carries the Lawang demo corpus, so there is nothing else to set up. Over HTTPS the tokens are ours,
 so ask us for one.
@@ -133,7 +134,7 @@ For the published image over stdio, with no Go toolchain:
     "lawang-onboard": {
       "command": "docker",
       "args": ["run", "-i", "--rm", "-e", "ONBOARD_TOKEN", "-e", "ONBOARD_TOKEN_CONTRACTOR",
-               "ghcr.io/gablooge/lawang-onboard:0.1.1", "-stdio"],
+               "ghcr.io/gablooge/lawang-onboard:0.1.2", "-stdio"],
       "env": {
         "ONBOARD_TOKEN": "${env:ONBOARD_TOKEN}",
         "ONBOARD_TOKEN_CONTRACTOR": "${env:ONBOARD_TOKEN_CONTRACTOR}"
@@ -169,7 +170,7 @@ Over stdio, through the image:
 claude mcp add --env 'ONBOARD_TOKEN=${ONBOARD_TOKEN}' \
   --env 'ONBOARD_TOKEN_CONTRACTOR=${ONBOARD_TOKEN_CONTRACTOR}' --transport stdio lawang-onboard \
   -- docker run -i --rm -e ONBOARD_TOKEN -e ONBOARD_TOKEN_CONTRACTOR \
-     ghcr.io/gablooge/lawang-onboard:0.1.1 -stdio
+     ghcr.io/gablooge/lawang-onboard:0.1.2 -stdio
 ```
 
 Over HTTPS, through the hosted server:
@@ -210,7 +211,7 @@ Over stdio, through the image. That page's stdio field table marks `type` requir
       "type": "stdio",
       "command": "docker",
       "args": ["run", "-i", "--rm", "-e", "ONBOARD_TOKEN", "-e", "ONBOARD_TOKEN_CONTRACTOR",
-               "ghcr.io/gablooge/lawang-onboard:0.1.1", "-stdio"],
+               "ghcr.io/gablooge/lawang-onboard:0.1.2", "-stdio"],
       "env": {
         "ONBOARD_TOKEN": "${env:ONBOARD_TOKEN}",
         "ONBOARD_TOKEN_CONTRACTOR": "${env:ONBOARD_TOKEN_CONTRACTOR}"
@@ -263,7 +264,7 @@ Over stdio, through the image:
       "type": "stdio",
       "command": "docker",
       "args": ["run", "-i", "--rm", "-e", "ONBOARD_TOKEN", "-e", "ONBOARD_TOKEN_CONTRACTOR",
-               "ghcr.io/gablooge/lawang-onboard:0.1.1", "-stdio"],
+               "ghcr.io/gablooge/lawang-onboard:0.1.2", "-stdio"],
       "env": {
         "ONBOARD_TOKEN": "${input:onboard-token}",
         "ONBOARD_TOKEN_CONTRACTOR": "${input:onboard-token}"
@@ -299,19 +300,32 @@ its example passes one JSON argument with escaped double quotes and covers `name
 The server is also listed in the [MCP Registry](https://registry.modelcontextprotocol.io) as
 `io.github.gablooge/lawang-onboard`.
 
-## What you get in Bob that you do not get elsewhere
+## The four prompts, in any client
 
-The nine tools are the same in every client. The guidance around them is not. The Onboard mode's
-rules, its four skills (`tour`, `trace`, `why`, `first-week`) and its three slash commands live in
-[`.bob/`](.bob/), in Bob's own formats, and this server does not serve them over MCP yet. So a
-Claude Code, Cursor or VS Code user who connects this server gets nine tools and has to supply the
-rest: that the first call should be `whoami`, that the tour fans out over the modules this role can
-see and merges them, that every claim cites an item id, and that the answer ends with the Withheld
-line. Those clients do answer onboarding questions from the filtered corpus, and the server filters
-their tool calls exactly as it filters Bob's (see the limit below). They just do not run the tour as
-a tour. The protocol has a place for this guidance, and it is empty here: `prompts/list` against the
-published image answers with an empty list. Serving the four skills as MCP prompts, so that any
-client can call them, is the one P2 item still open in [PLAN.md](PLAN.md).
+The nine tools are the same in every client, and so is the guidance around them. The Onboard
+mode's four skills (`tour`, `trace`, `why`, `first-week`) are written once, in
+[`.bob/skills/`](.bob/skills/), and the server serves that same text as MCP prompts, each one
+preceded by the mode's rules from [`.bob/rules-onboard/`](.bob/rules-onboard/): call `whoami`
+first, answer only from tool results, cite every item id, end with the Withheld line. `trace`
+takes a `term` and `why` takes a `path`; both are required, one line of at most 512 bytes with
+something visible in it, and the value is appended after the text as data, never substituted
+into it. So a client that is not Bob runs the tour as a tour:
+
+| Client | How the prompt appears |
+|---|---|
+| Claude Code | `/mcp__lawang-onboard__tour`, `/mcp__lawang-onboard__trace webhook`; the `/` menu lists them as `/lawang-onboard:tour (MCP)`. Arguments are split on whitespace, so `message broker` is two tokens: use a one-word term ([Claude Code MCP docs](https://code.claude.com/docs/en/mcp), read 28 October 2026) |
+| VS Code | `/lawang-onboard.tour` in chat ([VS Code MCP servers](https://code.visualstudio.com/docs/copilot/customization/mcp-servers), read 28 October 2026; not run) |
+| Cursor | [Cursor's MCP docs](https://cursor.com/docs/context/mcp) (read 28 October 2026) list prompts as supported and do not say how to invoke one; not run |
+| Any MCP client | `prompts/list`, then `prompts/get` with the name and arguments |
+
+Checked on 28 October 2026 with Claude Code 2.1.311 from an empty directory, the `0.1.2` build over
+stdio as contractor: `/mcp__lawang-onboard__tour` began with `Role: contractor`, called the tools
+through the server, produced a tour with an item id on every claim, and ended with the same line
+as the Bob run it is measured against (task 36 in [`bob_sessions/LEDGER.md`](bob_sessions/LEDGER.md)):
+`Withheld: path:cmd (68), path:internal/core (314), path:migrations (56), path:repo (86),
+private:growth (18), private:security (6) | total hidden: 399`. What stays Bob's: the Onboard
+mode itself, which is what takes the file system away from the model (the limit below), and the
+three slash commands in [`.bob/commands/`](.bob/commands/), which only switch to that mode.
 
 One limit is worth stating plainly, because it is not a setting we can fix. **The filter holds only
 while this server is the model's only view of the code.** Bob's Onboard mode is configured without
@@ -413,7 +427,7 @@ Every command below runs in a clone of this repository, and everything you make 
    ```sh
    docker run --rm -p 47312:47312 --env-file .env \
      -v "$PWD/local/corpus:/app/corpus:ro" -v "$PWD/local/roles.yaml:/app/roles.yaml:ro" \
-     ghcr.io/gablooge/lawang-onboard:0.1.1
+     ghcr.io/gablooge/lawang-onboard:0.1.2
    ```
 
    The MCP endpoint is `http://localhost:47312/mcp` and the page is at `/`. For stdio, take your

@@ -2,6 +2,8 @@
 .env
 .env.*
 .bob/
+!.bob/skills/
+!.bob/rules-onboard/
 bin/
 bob_sessions/
 docs/assets/

@@ -16,7 +16,8 @@ Call `whoami` and state the role in one line before proceeding.
 ## Step 2 - Trace the term
 
 Call `trace_feature` with the term provided by the user. Collect the returned files, commits,
-review comments, and ADRs grouped by kind.
+review comments, and ADRs grouped by kind. The result names each item by id, kind and title only:
+call `get` on an item before you state what it says, its reason or its date.
 
 ## Step 3 - Explain the flow in order
 
@@ -37,4 +38,4 @@ Call `withheld` and report the counts. If any scope has a non-zero withheld coun
 paragraph explaining that the trace may be incomplete because items in those scopes are not
 visible to the current role. Do not guess at what the withheld items contain.
 
-End with: `Withheld: <scope> (<count>), ...` (or `Withheld: none`).
+End with: `Withheld: <scope> (<count>), ... | total hidden: <total>` (or `Withheld: none`).
