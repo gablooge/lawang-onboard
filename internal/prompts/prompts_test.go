@@ -99,6 +99,7 @@ func TestRenderRefusesMissingBlankMultilineAndUnknownArguments(t *testing.T) {
 		"flag then tags": {trace, map[string]string{"term": "webhook\U0001F3F4\U000E0069\U000E0067\U000E006E\U000E007F"}},
 		"flag then more": {trace, map[string]string{"term": "\U0001F3F4\U000E0067\U000E0062\U000E0073\U000E0063\U000E0074\U000E007F\U000E0069"}},
 		"no cancel tag":  {trace, map[string]string{"term": "\U0001F3F4\U000E0067\U000E0062\U000E0073\U000E0063\U000E0074\U000E0069"}},
+		"other letters":  {trace, map[string]string{"term": "\U0001F3F4\U000E0067\U000E0062\U000E0061\U000E0062\U000E0063\U000E007F"}},
 		"cut flag":       {trace, map[string]string{"term": "\U0001F3F4\U000E0067\U000E0062\U000E0073"}},
 		"vs17":           {trace, map[string]string{"term": "a\U000E0100\U000E0101"}},
 		"bad utf8":       {trace, map[string]string{"term": "a\xffb"}},
