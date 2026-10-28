@@ -1,6 +1,6 @@
 ---
 name: why
-description: Use when the user asks why a file or directory looks the way it does. Calls why for the path, then explains the decisions behind it from commits, review comments and ADRs, with citations, and notes what was withheld.
+description: Use when the user asks why a file or directory looks the way it does. Calls why for the path, then explains the decisions behind it from commits, review comments, and ADRs and docs, with citations, and notes what was withheld.
 metadata:
   argument-hint: "[repository path]"
 ---

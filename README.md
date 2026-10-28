@@ -313,7 +313,7 @@ into it. So a client that is not Bob runs the tour as a tour:
 
 | Client | How the prompt appears |
 |---|---|
-| Claude Code | `/mcp__lawang-onboard__tour`, `/mcp__lawang-onboard__trace webhook`; the `/` menu lists them as `/lawang-onboard:tour (MCP)`. Arguments are split on whitespace, so `trace message broker` sends `message` alone: use a one-word term ([Claude Code MCP docs](https://code.claude.com/docs/en/mcp), read 28 October 2026) |
+| Claude Code | `/mcp__lawang-onboard__tour`, `/mcp__lawang-onboard__trace webhook`; the `/` menu lists them as `/lawang-onboard:tour (MCP)`. Arguments are split on whitespace, so `message broker` is two tokens: use a one-word term ([Claude Code MCP docs](https://code.claude.com/docs/en/mcp), read 28 October 2026) |
 | VS Code | `/lawang-onboard.tour` in chat ([VS Code MCP servers](https://code.visualstudio.com/docs/copilot/customization/mcp-servers), read 28 October 2026; not run) |
 | Cursor | [Cursor's MCP docs](https://cursor.com/docs/context/mcp) (read 28 October 2026) list prompts as supported and do not say how to invoke one; not run |
 | Any MCP client | `prompts/list`, then `prompts/get` with the name and arguments |

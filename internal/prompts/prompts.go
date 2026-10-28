@@ -12,6 +12,7 @@ import (
 	"context"
 	"fmt"
 	"io/fs"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -85,7 +86,7 @@ type set struct {
 // build stops the server before it listens rather than inside a request.
 func Load() ([]Prompt, error) {
 	s, err := loaded()
-	return s.prompts, err
+	return slices.Clone(s.prompts), err
 }
 
 func load(fsys fs.FS) ([]Prompt, error) {
@@ -204,7 +205,10 @@ func (p Prompt) Render(rules string, args map[string]string) (string, error) {
 
 // checkValue refuses what a term or a path never needs: more than maxArgBytes, invalid UTF-8,
 // any control character (which covers line ends, tab, ESC and U+0085), the Unicode line and
-// paragraph separators, and a value with nothing visible in it (zero-width spaces only).
+// paragraph separators, the bidirectional embedding, override and isolate controls, tag
+// characters except in a subdivision flag (after U+1F3F4), and a value with nothing visible in
+// it (zero-width spaces only). Bidi controls and tag characters can carry text a model reads
+// and the person who pasted it does not see.
 func checkValue(v string) error {
 	if len(v) > maxArgBytes {
 		return fmt.Errorf("is longer than %d bytes", maxArgBytes)
@@ -213,10 +217,18 @@ func checkValue(v string) error {
 		return fmt.Errorf("is not valid UTF-8")
 	}
 	visible := false
+	var prev rune
 	for _, r := range v {
 		if unicode.IsControl(r) || r == '\u2028' || r == '\u2029' {
 			return fmt.Errorf("must be one line of text")
 		}
+		if (r >= '\u202A' && r <= '\u202E') || (r >= '\u2066' && r <= '\u2069') {
+			return fmt.Errorf("contains a bidirectional control")
+		}
+		if r >= 0xE0000 && r <= 0xE007F && prev != 0x1F3F4 && !(prev >= 0xE0000 && prev <= 0xE007F) {
+			return fmt.Errorf("contains a tag character outside a flag")
+		}
+		prev = r
 		if unicode.IsGraphic(r) && !unicode.IsSpace(r) {
 			visible = true
 		}
